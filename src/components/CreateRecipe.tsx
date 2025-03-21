@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { parseCSVRecipes, normalizeIngredient, type Recipe, type Ingredient } from '../utils/recipeData';
 import { useChefFreddie } from '../context/ChefFreddieContext';
+import { useSavedRecipes } from '../context/SavedRecipesContext';
 
 interface SelectedItems {
   proteins: string[];
@@ -29,7 +30,13 @@ const CreateRecipe: React.FC = () => {
   const [matchedRecipes, setMatchedRecipes] = useState<MatchedRecipe[]>([]);
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [flippedCards, setFlippedCards] = useState<{ [key: string]: boolean }>({});
-  const { showChefFreddie, setCurrentRecipe, currentRecipe } = useChefFreddie();
+  const { 
+    showChefFreddie, 
+    setCurrentRecipe, 
+    setRecommendedRecipe, 
+    currentRecipe 
+  } = useChefFreddie();
+  const { addToSaved, isRecipeSaved, removeFromSaved } = useSavedRecipes();
 
   const ingredients = {
     proteins: [
@@ -751,6 +758,16 @@ const CreateRecipe: React.FC = () => {
                     </div>
                     <div className="flex gap-2">
                       <button
+                        onClick={() => handleSaveRecipe(recipe)}
+                        className={`px-4 py-2 rounded-md font-medium transition-colors duration-200 ${
+                          isRecipeSaved(recipe.id)
+                            ? 'bg-indigo-600 text-white hover:bg-indigo-700'
+                            : 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200'
+                        }`}
+                      >
+                        {isRecipeSaved(recipe.id) ? 'Unarchive' : 'Archive'}
+                      </button>
+                      <button
                         onClick={() => toggleCard(recipe.id)}
                         className="inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
                       >
@@ -813,16 +830,18 @@ const CreateRecipe: React.FC = () => {
                         ))}
                       </div>
                     </div>
-                    <button
-                      onClick={() => handleRecipeSelect(recipe)}
-                      className={`px-4 py-2 rounded-md font-medium transition-colors duration-200 ${
-                        currentRecipe?.id === recipe.id
-                          ? 'bg-porkchop-600 text-white hover:bg-porkchop-700'
-                          : 'bg-porkchop-100 text-porkchop-700 hover:bg-porkchop-200'
-                      }`}
-                    >
-                      {currentRecipe?.id === recipe.id ? 'Selected' : 'Select Recipe'}
-                    </button>
+                    <div className="flex justify-between items-center mt-4">
+                      <button
+                        onClick={() => handleRecipeSelect(recipe)}
+                        className={`px-4 py-2 rounded-md font-medium transition-colors duration-200 ${
+                          currentRecipe?.id === recipe.id
+                            ? 'bg-porkchop-600 text-white hover:bg-porkchop-700'
+                            : 'bg-porkchop-100 text-porkchop-700 hover:bg-porkchop-200'
+                        }`}
+                      >
+                        {currentRecipe?.id === recipe.id ? 'Selected' : 'Select Recipe'}
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -836,9 +855,19 @@ const CreateRecipe: React.FC = () => {
   const handleRecipeSelect = (recipe: Recipe) => {
     if (currentRecipe?.id === recipe.id) {
       setCurrentRecipe(null);
+      setRecommendedRecipe(null);
     } else {
       setCurrentRecipe(recipe);
+      setRecommendedRecipe(recipe);
       showChefFreddie();
+    }
+  };
+
+  const handleSaveRecipe = (recipe: Recipe) => {
+    if (isRecipeSaved(recipe.id)) {
+      removeFromSaved(recipe.id);
+    } else {
+      addToSaved(recipe);
     }
   };
 

@@ -1,4 +1,5 @@
 import React, { useState, KeyboardEvent, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useChefFreddie } from '../context/ChefFreddieContext';
 import {
   findTipsByCategory,
@@ -14,6 +15,7 @@ import {
   getSeasonalPairings,
   flavorCombinations
 } from '../utils/chefKnowledge';
+import ChefFreddieLogo from './ChefFreddieLogo';
 
 interface ChefResponse {
   text: string;
@@ -67,34 +69,72 @@ interface RouteContextBase {
 }
 
 const GlobalChefFreddie: React.FC = () => {
-  const { isVisible, currentRecipe, currentRoute, getContextualHelp, getRouteContext } = useChefFreddie();
+  const { 
+    isVisible, 
+    currentRecipe, 
+    recommendedRecipe,
+    currentRoute, 
+    getContextualHelp, 
+    getRouteContext,
+    getRecipeContext 
+  } = useChefFreddie();
   const [showBubble, setShowBubble] = useState(false);
   const [inputValue, setInputValue] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Update initial message when context changes
+  // Update initial message when context changes or when recommended recipe changes
   useEffect(() => {
-    if (showBubble && messages.length === 0) {
+    if (showBubble) {
       setIsTyping(true);
       setTimeout(() => {
         const context = getRouteContext();
+        const recipeContext = getRecipeContext();
+        
+        // Clear existing messages
         setMessages([{ 
-          text: getContextualHelp(),
+          text: recipeContext ? getContextualHelp() : context.description,
           from: 'chef',
           type: 'greeting',
-          suggestedQuestions: context.suggestedQuestions
+          suggestedQuestions: recipeContext ? recipeContext.suggestedQuestions : context.suggestedQuestions
         }]);
         setIsTyping(false);
       }, 1000);
     }
-  }, [showBubble, currentRoute, currentRecipe]);
+  }, [showBubble, currentRoute, currentRecipe, recommendedRecipe]);
 
   // Scroll to bottom when messages change
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  useEffect(() => {
+    if (isVisible && (currentRecipe || recommendedRecipe)) {
+      // Automatically show the bubble when a recipe is selected
+      setShowBubble(true);
+      setIsTyping(true);
+      setTimeout(() => {
+        const recipeContext = getRecipeContext();
+        // Clear existing messages and set new recipe-specific message
+        setMessages([{ 
+          text: getContextualHelp(),
+          from: 'chef',
+          type: 'recipe',
+          suggestedQuestions: recipeContext?.suggestedQuestions || []
+        }]);
+        setIsTyping(false);
+      }, 500); // Reduced delay for faster response
+    }
+  }, [isVisible, currentRecipe, recommendedRecipe]);
+
+  const handleCloseBubble = () => {
+    setShowBubble(false);
+    // Clear the message history and input when closing
+    setMessages([]);
+    setInputValue('');
+    setIsTyping(false);
+  };
 
   const handleSuggestedQuestion = (question: string) => {
     handleSendMessage(question);
@@ -412,198 +452,259 @@ const GlobalChefFreddie: React.FC = () => {
     }
   };
 
-  const handleCloseBubble = () => {
-    setShowBubble(false);
-    // Clear the message history and input when closing
-    setMessages([]);
-    setInputValue('');
-    setIsTyping(false);
+  const bubbleVariants = {
+    hidden: { opacity: 0, scale: 0.8, y: 20 },
+    visible: { 
+      opacity: 1, 
+      scale: 1, 
+      y: 0,
+      transition: { 
+        type: "spring", 
+        stiffness: 400, // Increased stiffness for snappier animation
+        damping: 20,    // Reduced damping for more bounce
+        duration: 0.5   // Faster overall animation
+      }
+    },
+    exit: { 
+      opacity: 0, 
+      scale: 0.8, 
+      y: 20,
+      transition: { duration: 0.2 }
+    }
   };
 
-  if (!isVisible) return null;
+  const messageVariants = {
+    hidden: { opacity: 0, x: -20 },
+    visible: { 
+      opacity: 1, 
+      x: 0,
+      transition: { duration: 0.3 }
+    }
+  };
 
-  return (
-    <div className="fixed bottom-8 right-8 z-50">
-      {/* Speech Bubble */}
+  const typingIndicatorVariants = {
+    initial: { scale: 1 },
+    animate: {
+      scale: [1, 1.2, 1],
+      transition: { duration: 0.6, repeat: Infinity }
+    }
+  };
+
+  // Add a bounce animation for the Chef Freddie icon when a recipe is selected
+  const iconVariants = {
+    normal: { scale: 1 },
+    selected: {
+      scale: [1, 1.2, 1],
+      rotate: [0, -10, 10, -10, 0],
+      transition: {
+        duration: 0.5,
+        times: [0, 0.2, 0.4, 0.6, 0.8]
+      }
+    }
+  };
+
+  return isVisible ? (
+    <AnimatePresence>
       {showBubble && (
-        <div 
-          className="absolute bottom-full mb-4 right-0 bg-white p-4 rounded-lg shadow-lg w-96 transform transition-all duration-200 ease-out"
-          style={{ 
-            filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))',
-            animation: 'slideIn 0.3s ease-out'
-          }}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8, y: 20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.8, y: 20 }}
+          className="fixed bottom-24 right-4 w-96 bg-white rounded-lg shadow-xl overflow-hidden border border-gray-200"
         >
-          <div className="flex justify-between items-start mb-2">
-            <h3 className="text-lg font-semibold text-porkchop-900">Chef Freddie</h3>
-            <button 
-              onClick={(e) => {
-                e.stopPropagation();
-                handleCloseBubble();
-              }}
-              className="text-gray-400 hover:text-gray-600 transition-colors duration-200"
+          <div className="bg-pink-100 p-4 flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8">
+                <ChefFreddieLogo />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-800">Chef Freddie</h3>
+            </div>
+            <button
+              onClick={() => setShowBubble(false)}
+              className="text-gray-500 hover:text-gray-700"
             >
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
           </div>
-
+          
           {/* Messages Container */}
-          <div 
-            id="messages-container"
-            className="space-y-3 mb-3 max-h-96 overflow-y-auto scroll-smooth"
-          >
-            {messages.map((message, index) => (
-              <div key={index} className="space-y-2">
-                <div
-                  className={`p-2 rounded-lg transform transition-all duration-200 ${
-                    message.from === 'user'
-                      ? 'bg-porkchop-100 text-porkchop-900 ml-4 animate-slideInRight'
-                      : 'bg-gray-100 text-gray-800 mr-4 animate-slideInLeft'
-                  }`}
+          <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
+            <AnimatePresence mode="popLayout">
+              {messages.map((message, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className={`flex ${message.from === 'user' ? 'justify-end' : 'justify-start'} mb-4`}
                 >
-                  {message.text}
-                  {message.additionalInfo && (
-                    <div className="mt-2 space-y-2">
-                      {message.additionalInfo.tips && (
-                        <ul className="list-disc list-inside text-sm">
-                          {message.additionalInfo.tips.map((tip, i) => (
-                            <li key={i} className="text-gray-700">{tip}</li>
-                          ))}
-                        </ul>
-                      )}
-                      {message.additionalInfo.pairings && (
-                        <div className="text-sm">
-                          <p className="font-semibold">Great pairings:</p>
-                          <p className="text-gray-700">{message.additionalInfo.pairings.join(', ')}</p>
-                        </div>
-                      )}
-                      {message.additionalInfo.avoidList && (
-                        <div className="text-sm">
-                          <p className="font-semibold">Avoid combining with:</p>
-                          <p className="text-gray-700">{message.additionalInfo.avoidList.join(', ')}</p>
-                        </div>
-                      )}
-                      {message.additionalInfo.seasonalSuggestions && message.additionalInfo.seasonalSuggestions.length > 0 && (
-                        <div className="text-sm">
-                          <p className="font-semibold">Seasonal suggestions:</p>
-                          <p className="text-gray-700">{message.additionalInfo.seasonalSuggestions.join(', ')}</p>
-                        </div>
-                      )}
-                      {message.additionalInfo.equipment && (
-                        <div className="text-sm">
-                          <p className="font-semibold">Equipment needed:</p>
-                          <p className="text-gray-700">{message.additionalInfo.equipment.join(', ')}</p>
-                        </div>
-                      )}
-                      {message.additionalInfo.temperature && (
-                        <div className="text-sm">
-                          <p className="font-semibold">Temperature guide:</p>
-                          <p className="text-gray-700">{message.additionalInfo.temperature}</p>
-                        </div>
-                      )}
-                      {message.additionalInfo.examples && (
-                        <div className="text-sm italic text-gray-600">
-                          {message.additionalInfo.examples.join(', ')}
-                        </div>
-                      )}
+                  {message.from === 'chef' && (
+                    <div className="w-8 h-8 mr-2 flex-shrink-0">
+                      <ChefFreddieLogo />
                     </div>
                   )}
-                </div>
-                {message.from === 'chef' && message.suggestedQuestions && (
-                  <div className="flex flex-wrap gap-2 ml-4">
-                    {message.suggestedQuestions.map((question, qIndex) => (
-                      <button
-                        key={qIndex}
-                        onClick={() => handleSuggestedQuestion(question)}
-                        className="text-sm px-3 py-1 rounded-full bg-porkchop-50 text-porkchop-700 hover:bg-porkchop-100 transition-colors duration-200"
+                  <div
+                    className={`max-w-[80%] rounded-2xl px-4 py-2 ${
+                      message.from === 'user'
+                        ? 'bg-blue-500 text-white'
+                        : 'bg-gray-100 text-gray-800'
+                    }`}
+                  >
+                    <p className="text-sm sm:text-base leading-relaxed">{message.text}</p>
+                    {message.additionalInfo && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        transition={{ duration: 0.3 }}
+                        className="mt-3 pt-3 border-t border-gray-200/20"
                       >
-                        {question}
-                      </button>
-                    ))}
+                        {message.additionalInfo.tips && (
+                          <div className="text-sm space-y-2">
+                            <p className={`font-medium ${message.from === 'user' ? 'text-white' : 'text-gray-700'}`}>
+                              Tips:
+                            </p>
+                            <ul className="list-disc list-inside space-y-1.5">
+                              {message.additionalInfo.tips.map((tip, i) => (
+                                <li key={i} className={message.from === 'user' ? 'text-white/90' : 'text-gray-600'}>
+                                  {tip}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                        {message.additionalInfo.examples && (
+                          <div className="mt-2 text-sm">
+                            {message.additionalInfo.examples.map((example, i) => (
+                              <p key={i} className={message.from === 'user' ? 'text-white/90' : 'text-gray-600'}>
+                                {example}
+                              </p>
+                            ))}
+                          </div>
+                        )}
+                      </motion.div>
+                    )}
+                    {message.suggestedQuestions && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        transition={{ duration: 0.3, delay: 0.2 }}
+                        className="mt-3 pt-3 border-t border-gray-200/20 space-y-2"
+                      >
+                        <p className={`text-sm font-medium ${message.from === 'user' ? 'text-white' : 'text-gray-700'}`}>
+                          Suggested questions:
+                        </p>
+                        <div className="space-y-1">
+                          {message.suggestedQuestions.map((question, i) => (
+                            <button
+                              key={i}
+                              onClick={() => handleSuggestedQuestion(question)}
+                              className={`block text-sm text-left w-full px-3 py-2.5 rounded-lg transition-colors ${
+                                message.from === 'user'
+                                  ? 'hover:bg-blue-600/50 active:bg-blue-600/70 text-white/90'
+                                  : 'hover:bg-gray-100 active:bg-gray-200 text-gray-600'
+                              }`}
+                            >
+                              {question}
+                            </button>
+                          ))}
+                        </div>
+                      </motion.div>
+                    )}
                   </div>
-                )}
-              </div>
-            ))}
-            {isTyping && (
-              <div className="bg-gray-100 text-gray-800 mr-4 p-2 rounded-lg animate-pulse">
-                <div className="flex space-x-2">
-                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
-                </div>
-              </div>
-            )}
+                </motion.div>
+              ))}
+              {isTyping && (
+                <motion.div
+                  variants={messageVariants}
+                  initial="hidden"
+                  animate="visible"
+                  className="flex items-end space-x-2"
+                >
+                  <div className="w-10 h-10 rounded-full bg-white flex-shrink-0 flex items-center justify-center p-1.5 shadow-sm">
+                    <ChefFreddieLogo />
+                  </div>
+                  <div className="bg-white rounded-2xl p-4 shadow-sm">
+                    <div className="flex space-x-2">
+                      {[0, 1, 2].map((i) => (
+                        <motion.div
+                          key={i}
+                          variants={typingIndicatorVariants}
+                          initial="initial"
+                          animate="animate"
+                          className="w-2 h-2 bg-blue-400 rounded-full"
+                          style={{ animationDelay: `${i * 0.15}s` }}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
             <div ref={messagesEndRef} />
           </div>
 
           {/* Input Area */}
-          <div className="flex gap-2">
-            <input
-              type="text"
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder={currentRecipe ? `Ask about ${currentRecipe.title}...` : "Ask Chef Freddie..."}
-              className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-porkchop-500 focus:border-transparent transition-all duration-200"
-            />
-            <button
-              onClick={() => handleSendMessage(inputValue)}
-              disabled={!inputValue.trim()}
-              className="px-3 py-2 bg-porkchop-500 text-white rounded-md hover:bg-porkchop-600 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105 transition-all duration-200"
-            >
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-              </svg>
-            </button>
+          <div className="sticky bottom-0 p-4 bg-white border-t border-gray-100 shadow-sm">
+            <div className="flex space-x-2">
+              <input
+                type="text"
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                onKeyPress={handleKeyPress}
+                placeholder="Ask Chef Freddie anything..."
+                className="flex-1 px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-base"
+              />
+              <motion.button
+                whileTap={{ scale: 0.95 }}
+                onClick={() => handleSendMessage(inputValue)}
+                className="p-3 bg-blue-500 text-white rounded-xl hover:bg-blue-600 active:bg-blue-700 transition-colors shadow-sm"
+              >
+                <span className="sr-only">Send message</span>
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                </svg>
+              </motion.button>
+            </div>
           </div>
-
-          {/* Triangle pointer */}
-          <div 
-            className="absolute bottom-0 right-8 transform translate-y-full"
-            style={{
-              width: 0,
-              height: 0,
-              borderLeft: '8px solid transparent',
-              borderRight: '8px solid transparent',
-              borderTop: '8px solid white'
-            }}
-          />
-        </div>
+        </motion.div>
       )}
-
-      {/* Chef Freddie Icon */}
-      <button
+      <motion.button
         onClick={() => setShowBubble(!showBubble)}
-        className="bg-white rounded-full p-2 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
-        style={{
-          animation: showBubble ? 'bounce 0.5s ease' : undefined
-        }}
+        className="fixed bottom-4 right-4 z-50 bg-white rounded-full p-2 shadow-lg hover:shadow-xl transition-all duration-200"
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+        animate={currentRecipe || recommendedRecipe ? "selected" : "normal"}
+        variants={iconVariants}
       >
-        <svg
-          className="w-16 h-16 text-porkchop-900"
-          viewBox="0 0 500 500"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            d="M250 10c-132.3 0-240 107.7-240 240s107.7 240 240 240 240-107.7 240-240S382.3 10 250 10zm0 460c-121.5 0-220-98.5-220-220S128.5 30 250 30s220 98.5 220 220-98.5 220-220 220z"
-            fill="currentColor"
-          />
-          <path
-            d="M250 150c-55.2 0-100 44.8-100 100s44.8 100 100 100 100-44.8 100-100-44.8-100-100-100zm0 180c-44.1 0-80-35.9-80-80s35.9-80 80-80 80 35.9 80 80-35.9 80-80 80z"
-            fill="currentColor"
-          />
-          <circle cx="200" cy="200" r="20" fill="currentColor" />
-          <circle cx="300" cy="200" r="20" fill="currentColor" />
-          <path
-            d="M250 280c-27.6 0-50 22.4-50 50h100c0-27.6-22.4-50-50-50z"
-            fill="currentColor"
-          />
-        </svg>
-      </button>
-    </div>
-  );
+        <div className="relative w-16 h-16">
+          <motion.div
+            className="absolute inset-0 flex items-center justify-center"
+            initial={false}
+            animate={showBubble ? { opacity: 1 } : { opacity: 0 }}
+          >
+            <svg className="w-8 h-8 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </motion.div>
+          <motion.div
+            className="absolute inset-0 flex items-center justify-center p-2"
+            initial={false}
+            animate={showBubble ? { opacity: 0 } : { opacity: 1 }}
+          >
+            <ChefFreddieLogo />
+            <motion.div
+              className="absolute -top-1 -right-1 w-3 h-3 bg-blue-500 rounded-full"
+              animate={{
+                scale: [1, 1.2, 1],
+                transition: { duration: 2, repeat: Infinity }
+              }}
+            />
+          </motion.div>
+        </div>
+      </motion.button>
+    </AnimatePresence>
+  ) : null;
 };
 
 export default GlobalChefFreddie; 

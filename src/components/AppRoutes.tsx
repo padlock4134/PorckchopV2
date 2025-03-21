@@ -5,9 +5,10 @@ import LoginPage from './LoginPage';
 import SignupPage from './SignupPage';
 import Dashboard from './Dashboard';
 import ProfilePage from './ProfilePage';
-import CreateRecipe from './CreateRecipe';
+import CreateRecipeForm from './CreateRecipeForm';
 import PricingPage from './PricingPage';
 import SubscriptionManagement from './SubscriptionManagement';
+import MyCookbook from './MyCookbook';
 
 // Protected route wrapper
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -41,10 +42,26 @@ const AppRoutes: React.FC = () => {
 
         {/* Protected routes */}
         <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/create-recipe"
           element={
             <ProtectedRoute>
-              <CreateRecipe />
+              <CreateRecipeForm />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/my-cookbook"
+          element={
+            <ProtectedRoute>
+              <MyCookbook />
             </ProtectedRoute>
           }
         />
@@ -57,37 +74,15 @@ const AppRoutes: React.FC = () => {
           }
         />
         <Route
-          path="/dashboard"
-          element={
-            <ProtectedRoute>
-              <Dashboard />
-            </ProtectedRoute>
-          }
-        />
-        <Route
           path="/subscription"
           element={
             <ProtectedRoute>
-              <SubscriptionManagement
-                subscription={{
-                  id: 'sub_mock',
-                  status: 'active',
-                  currentPeriodEnd: '2024-04-01',
-                  trialEnd: null,
-                  cancelAtPeriodEnd: false
-                }}
-                paymentMethod={{
-                  id: 'pm_mock',
-                  brand: 'visa',
-                  last4: '4242',
-                  expMonth: 12,
-                  expYear: 2024
-                }}
-                customerId="cus_mock"
-              />
+              <SubscriptionManagement />
             </ProtectedRoute>
           }
         />
+
+        {/* Default route */}
         <Route
           path="/"
           element={
