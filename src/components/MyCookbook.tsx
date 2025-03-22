@@ -44,22 +44,28 @@ const RecipeCard: React.FC<{ recipe: Recipe }> = ({ recipe }) => {
           className="bg-white rounded-lg shadow-md overflow-hidden absolute w-full h-full backface-hidden"
           style={{ backfaceVisibility: 'hidden' }}
         >
-          {recipe.imageUrl && (
+          <div className="relative h-48 w-full overflow-hidden">
             <img
-              src={recipe.imageUrl}
+              src={`/data/images/recipe stock photos/${recipe.title}.png`}
               alt={recipe.title}
-              className="w-full h-48 object-cover"
+              className="w-full h-full object-cover"
               onError={(e) => {
                 (e.target as HTMLImageElement).src = '/placeholder-recipe.png';
               }}
             />
-          )}
+            <div className="absolute top-0 right-0 m-4">
+              <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-porkchop-100 text-porkchop-800 shadow-sm">
+                {recipe.difficulty}
+              </span>
+            </div>
+          </div>
+          
           <div className="p-4">
             <h3 className="text-lg font-semibold text-gray-900">{recipe.title}</h3>
             <p className="text-sm text-gray-600 mt-1">{recipe.description}</p>
             <div className="mt-4 flex justify-between items-center">
               <div className="text-sm text-gray-500">
-                {recipe.cookingTime} mins • {recipe.difficulty}
+                {recipe.cookingTime} mins • {recipe.servings} servings
               </div>
               <div className="flex space-x-2">
                 <button

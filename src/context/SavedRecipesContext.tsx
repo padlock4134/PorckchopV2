@@ -59,12 +59,7 @@ export const SavedRecipesProvider: React.FC<{ children: React.ReactNode }> = ({ 
       
       if (savedData) {
         const parsedRecipes = JSON.parse(savedData);
-        // Ensure each recipe has the correct image path
-        const recipesWithImages = parsedRecipes.map((recipe: Recipe) => ({
-          ...recipe,
-          imageUrl: `/data/images/recipe stock photos/${recipe.title}.png`
-        }));
-        setSavedRecipes(recipesWithImages);
+        setSavedRecipes(parsedRecipes);
       }
       
       if (collectionsData) {
@@ -84,12 +79,7 @@ export const SavedRecipesProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const addToSaved = (recipe: Recipe) => {
     setSavedRecipes(prev => {
       if (prev.some(r => r.id === recipe.id)) return prev;
-      // Ensure the recipe has the correct image path
-      const recipeWithImage = {
-        ...recipe,
-        imageUrl: `/data/images/recipe stock photos/${recipe.title}.png`
-      };
-      return [...prev, recipeWithImage];
+      return [...prev, recipe];
     });
   };
 

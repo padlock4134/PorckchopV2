@@ -4,11 +4,11 @@ import { useAuth } from '../context/AuthContext';
 import LoginPage from './LoginPage';
 import SignupPage from './SignupPage';
 import Dashboard from './Dashboard';
-import ProfilePage from './ProfilePage';
-import CreateRecipeForm from './CreateRecipeForm';
-import PricingPage from './PricingPage';
-import SubscriptionManagement from './SubscriptionManagement';
+import CreateRecipe from './CreateRecipe';
 import MyCookbook from './MyCookbook';
+import ProfilePage from './ProfilePage';
+import SubscriptionManagement from './SubscriptionManagement';
+import PricingPage from './PricingPage';
 
 // Protected route wrapper
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -53,7 +53,7 @@ const AppRoutes: React.FC = () => {
           path="/create-recipe"
           element={
             <ProtectedRoute>
-              <CreateRecipeForm />
+              <CreateRecipe />
             </ProtectedRoute>
           }
         />

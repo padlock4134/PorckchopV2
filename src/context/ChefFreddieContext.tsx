@@ -30,7 +30,7 @@ const routeContextMap: Record<string, RouteContext> = {
   '/': {
     route: '/',
     title: 'Home',
-    description: 'Welcome to PorkChop! Your personal cooking companion.',
+    description: 'Welcome to PorkChop! How can I help you today?',
     suggestedQuestions: [
       'What can I cook today?',
       'Show me popular recipes',
@@ -67,37 +67,38 @@ const routeContextMap: Record<string, RouteContext> = {
   },
   '/create-recipe': {
     route: '/create-recipe',
-    title: 'Recipe Creation',
-    description: 'Create, customize, and save your own recipes.',
+    title: 'Create Recipe',
+    description: "Let's create a new recipe! What ingredients do you have in your kitchen?",
     suggestedQuestions: [
-      'How do I start a new recipe?',
-      'What makes a good recipe description?',
-      'How do I add ingredients?',
-      'Can I save this recipe to my cookbook?'
+      'How do I select ingredients?',
+      'What cookware do I need?',
+      'How do I save my recipe?',
+      'Can I modify existing recipes?'
     ],
     features: [
       {
-        name: 'Recipe builder',
+        name: 'Ingredient selection',
         suggestedQuestions: [
-          'How do I structure my recipe?',
-          'What makes a good title?',
-          'Tips for writing instructions'
+          'How do I add proteins?',
+          'What vegetables can I use?',
+          'How do I add herbs and spices?',
+          'How do I remove ingredients?'
         ]
       },
       {
-        name: 'Ingredient management',
+        name: 'Cookware selection',
         suggestedQuestions: [
-          'How do I add ingredients?',
-          'What units should I use?',
-          'How to specify portions?'
+          'What cookware do I need?',
+          'How do I select multiple items?',
+          'Can I change my cookware later?'
         ]
       },
       {
-        name: 'Recipe saving',
+        name: 'Recipe management',
         suggestedQuestions: [
-          'How do I archive this recipe?',
+          'How do I save my recipe?',
           'Where do saved recipes go?',
-          'Can I organize my recipes into collections?'
+          'Can I edit my recipe later?'
         ]
       }
     ]
@@ -105,7 +106,7 @@ const routeContextMap: Record<string, RouteContext> = {
   '/my-cookbook': {
     route: '/my-cookbook',
     title: 'My Cookbook',
-    description: 'Your personal collection of saved and archived recipes.',
+    description: 'Here are your saved recipes and collections. What would you like to cook today?',
     suggestedQuestions: [
       'How do I organize my recipes?',
       'Can I create collections?',
@@ -140,8 +141,8 @@ const routeContextMap: Record<string, RouteContext> = {
   },
   '/profile': {
     route: '/profile',
-    title: 'Your Profile',
-    description: 'Manage your cooking preferences and saved recipes.',
+    title: 'Profile',
+    description: 'Manage your profile, preferences, and cooking history.',
     suggestedQuestions: [
       'How do I save a recipe?',
       'Where are my favorite recipes?',
@@ -177,7 +178,7 @@ const routeContextMap: Record<string, RouteContext> = {
   '/subscription': {
     route: '/subscription',
     title: 'Subscription',
-    description: 'Explore premium features with El Dente.',
+    description: 'View and manage your subscription plan.',
     suggestedQuestions: [
       'What comes with El Dente?',
       'How do I upgrade my plan?',
@@ -265,6 +266,43 @@ const routeContextMap: Record<string, RouteContext> = {
         ]
       }
     ]
+  },
+  '/butcher-shop': {
+    route: '/butcher-shop',
+    title: 'Butcher Shop',
+    description: 'Looking for quality meat? I can help you find local suppliers and suggest cuts for your recipes.',
+    suggestedQuestions: [
+      'What cuts of meat are best for grilling?',
+      'How do I choose the right cut for my recipe?',
+      'What are the different grades of meat?',
+      'How do I store meat properly?'
+    ],
+    features: [
+      {
+        name: 'Meat selection',
+        suggestedQuestions: [
+          'What cuts are best for slow cooking?',
+          'How do I choose tender cuts?',
+          'What are the most flavorful cuts?'
+        ]
+      },
+      {
+        name: 'Storage tips',
+        suggestedQuestions: [
+          'How long can I store meat in the freezer?',
+          "What's the best way to thaw meat?",
+          'How do I prevent freezer burn?'
+        ]
+      },
+      {
+        name: 'Cooking guidance',
+        suggestedQuestions: [
+          'What temperature should I cook different cuts to?',
+          'How do I tenderize tough cuts?',
+          'What are the best cooking methods for each cut?'
+        ]
+      }
+    ]
   }
 };
 
@@ -347,10 +385,9 @@ const ChefFreddieProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     // Add transition messages for specific route changes
     const transitionMessages: Record<string, string> = {
-      '/create-recipe': "Ready to create something delicious? I can help you build your recipe and save it to your cookbook when you're done. Need tips on recipe writing or ingredient combinations?",
+      '/create-recipe': "Let's create something delicious! First, select your proteins from the list on the left. Then add vegetables, herbs, and spices. Finally, choose the cookware you'll need. I'll help you match your ingredients with perfect recipes!",
       '/my-cookbook': "Welcome to your cookbook! Here you can find all your archived recipes and organize them into collections. Need help finding a specific recipe or creating a new collection?",
       '/butcher-shop': "Welcome to the Butcher Shop! I can help you learn about different cuts of meat and suggest recipes for each cut.",
-      '/chefs-market': "Welcome to the Chef's Market! Looking for specific ingredients or need suggestions for substitutions?",
       '/profile': "Let's check out your cooking profile! You can manage your saved recipes, collections, and cooking preferences here.",
       '/subscription': "Interested in upgrading your cooking experience? El Dente members get access to premium features and exclusive recipes!"
     };
