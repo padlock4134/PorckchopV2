@@ -2,10 +2,26 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useSavedRecipes } from '../context/SavedRecipesContext';
+import { calculateChefLevel, getChefLevelColor } from '../utils/chefLevel';
+import { getDailyChefQuote } from '../utils/chefQuotes';
 
 const Home: React.FC = () => {
   const { user } = useAuth();
   const { savedRecipes } = useSavedRecipes();
+  const chefLevel = calculateChefLevel(user?.recipesCreated || 0);
+  const levelColor = getChefLevelColor(chefLevel.level);
+  const chefQuote = getDailyChefQuote();
+
+  const getMedalEmoji = (level: number) => {
+    if (level >= 18) return '👑'; // Legendary
+    if (level >= 15) return '🏆'; // Elite
+    if (level >= 12) return '🥇'; // Master
+    if (level >= 9) return '🥈'; // Executive
+    if (level >= 6) return '🥉'; // Senior
+    if (level >= 3) return '🎖️'; // Junior
+    return '🍳'; // Beginner
+  };
+
   const navigationCards = [
     {
       title: "What's in My Fridge",
@@ -38,20 +54,48 @@ const Home: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Welcome Card */}
         <div className="bg-white rounded-lg shadow-sm mb-12 p-8">
-          <div className="flex items-center">
-            <div className="flex-shrink-0 mr-6">
-              <div className="w-16 h-16 rounded-full bg-porkchop-100 flex items-center justify-center">
-                <span className="text-2xl">🥉</span>
+          <div className="flex items-start space-x-8">
+            {/* Left Section - Medal and Level */}
+            <div className="flex-shrink-0">
+              <div className={`w-24 h-24 rounded-full ${levelColor} flex items-center justify-center`}>
+                <span className="text-4xl">{getMedalEmoji(chefLevel.level)}</span>
               </div>
-              <div className="text-sm text-gray-600 text-center mt-1">Line Cook</div>
+              <div className="text-base text-gray-600 text-center mt-2">
+                {chefLevel.title}
+                <div className="text-sm text-gray-500">Level {chefLevel.level}</div>
+              </div>
             </div>
-            <div>
-              <h1 className="text-4xl font-serif font-bold text-gray-900 mb-4">
-                Welcome back, {user?.name || 'there'}!
+
+            {/* Middle Section - Welcome Text */}
+            <div className="flex-1 text-center">
+              <h1 className="text-5xl font-serif font-bold text-gray-900 mb-3">
+                Welcome Back!
               </h1>
-              <p className="text-xl text-gray-600">
+              <p className="text-3xl text-gray-800 mb-4">
+                {user?.name || 'there'}
+              </p>
+              <p className="text-2xl text-gray-600 mb-6">
                 Ready to create something delicious today?
               </p>
+              <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+                <p className="text-xl text-gray-700 italic mb-2">"{chefQuote.quote}"</p>
+                <div className="flex items-center justify-center space-x-2">
+                  <p className="text-lg font-semibold text-gray-800">{chefQuote.author}</p>
+                  <span className="text-gray-400">•</span>
+                  <p className="text-gray-600">{chefQuote.role}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Section - Kitchen Photo */}
+            <div className="flex-shrink-0">
+              <div className="border-2 border-gray-200 rounded-lg overflow-hidden shadow-sm">
+                <img 
+                  src="/images/1920s Kitchen.png.webp" 
+                  alt="1920s Kitchen" 
+                  className="w-[400px] h-[220px] object-cover hover:scale-105 transition-transform duration-300"
+                />
+              </div>
             </div>
           </div>
         </div>

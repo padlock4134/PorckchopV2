@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useSubscription } from '../context/SubscriptionContext';
 import { useAuth } from '../context/AuthContext';
 import { calculateChefLevel, getChefLevelColor } from '../utils/chefLevel';
@@ -8,6 +8,7 @@ import TipOfTheDay from './TipOfTheDay';
 
 const Navigation: React.FC = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const { isSubscribed } = useSubscription();
   const { user, logout } = useAuth();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
@@ -23,6 +24,7 @@ const Navigation: React.FC = () => {
   const handleLogout = async () => {
     try {
       await logout();
+      navigate('/login');
     } catch (error) {
       console.error('Failed to logout:', error);
     }

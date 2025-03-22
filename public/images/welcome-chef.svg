@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Chef Hat -->
+  <path d="M64 20C64 20 40 30 40 45C40 60 64 70 64 70C64 70 88 60 88 45C88 30 64 20 64 20Z" fill="#F3F4F6"/>
+  <path d="M64 20C64 20 40 30 40 45C40 60 64 70 64 70C64 70 88 60 88 45C88 30 64 20 64 20Z" stroke="#4B5563" stroke-width="2"/>
+  
+  <!-- Face -->
+  <circle cx="64" cy="75" r="25" fill="#F3F4F6" stroke="#4B5563" stroke-width="2"/>
+  
+  <!-- Eyes -->
+  <circle cx="55" cy="70" r="3" fill="#4B5563"/>
+  <circle cx="73" cy="70" r="3" fill="#4B5563"/>
+  
+  <!-- Smile -->
+  <path d="M55 85C55 85 60 90 64 90C68 90 73 85 73 85" stroke="#4B5563" stroke-width="2" stroke-linecap="round"/>
+  
+  <!-- Mustache -->
+  <path d="M55 82C55 82 60 85 64 85C68 85 73 82 73 82" stroke="#4B5563" stroke-width="2" stroke-linecap="round"/>
+</svg> 
