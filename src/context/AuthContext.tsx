@@ -3,7 +3,8 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 interface User {
   id: string;
   email: string;
-  name: string;
+  firstName: string;
+  lastName: string;
   avatar: string;
   recipesCreated: number;
   subscriptionTier: 'rare' | 'el_dente';
@@ -21,8 +22,9 @@ interface AuthContextType {
   isLoading: boolean;
   error: string | null;
   login: (email: string, password: string) => Promise<void>;
-  signup: (email: string, password: string, name: string) => Promise<void>;
+  signup: (email: string, password: string, firstName: string, lastName: string) => Promise<void>;
   logout: () => Promise<void>;
+  updateProfile: (updates: Partial<User>) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -46,7 +48,16 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
       try {
         const storedUser = localStorage.getItem('user');
         if (storedUser) {
-          setUser(JSON.parse(storedUser));
+          const parsedUser = JSON.parse(storedUser);
+          // Handle migration of existing users
+          if (parsedUser.name && !parsedUser.firstName) {
+            const names = parsedUser.name.split(' ');
+            parsedUser.firstName = names[0];
+            parsedUser.lastName = names.slice(1).join(' ') || '';
+            delete parsedUser.name;
+            localStorage.setItem('user', JSON.stringify(parsedUser));
+          }
+          setUser(parsedUser);
         }
       } catch (err) {
         console.error('Error checking auth:', err);
@@ -65,11 +76,13 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
       setError(null);
       
       // For development: accept any credentials
+      const names = email.split('@')[0].split('.');
       const mockUser: User = {
         id: 'user_1',
         email: email,
-        name: email.split('@')[0],
-        avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(email.split('@')[0])}`,
+        firstName: names[0] || '',
+        lastName: names[1] || '',
+        avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(names.join(' '))}`,
         recipesCreated: 0,
         subscriptionTier: 'el_dente' as const,
         socialLinks: {
@@ -90,7 +103,7 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
     }
   };
 
-  const signup = async (email: string, password: string, name: string) => {
+  const signup = async (email: string, password: string, firstName: string, lastName: string) => {
     try {
       setIsLoading(true);
       setError(null);
@@ -99,8 +112,9 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
       const mockUser: User = {
         id: 'user_1',
         email: email,
-        name: name,
-        avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}`,
+        firstName: firstName,
+        lastName: lastName,
+        avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(`${firstName} ${lastName}`)}`,
         recipesCreated: 0,
         subscriptionTier: 'el_dente' as const,
         socialLinks: {
@@ -135,13 +149,40 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
     }
   };
 
+  const updateProfile = async (updates: Partial<User>) => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      
+      if (!user) throw new Error('No user logged in');
+      
+      const updatedUser = {
+        ...user,
+        ...updates,
+        // Update avatar if name is being changed
+        avatar: (updates.firstName || updates.lastName)
+          ? `https://ui-avatars.com/api/?name=${encodeURIComponent(`${updates.firstName || user.firstName} ${updates.lastName || user.lastName}`)}`
+          : user.avatar
+      };
+      
+      setUser(updatedUser);
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const value = {
     user,
     isLoading,
     error,
     login,
     signup,
-    logout
+    logout,
+    updateProfile
   };
 
   return (

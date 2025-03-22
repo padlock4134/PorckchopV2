@@ -1,10 +1,100 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useChallenge } from '../context/ChallengeContext';
+import Modal from './Modal';
 
 const ChefsCorner: React.FC = () => {
   const { user } = useAuth();
+  const { joinChallenge, joinedChallenges } = useChallenge();
   const [activeTab, setActiveTab] = useState('community');
   const [activeTutorialTab, setActiveTutorialTab] = useState('knife');
+  const [selectedTutorial, setSelectedTutorial] = useState<{ title: string; videoUrl: string } | null>(null);
+  const [showJoinModal, setShowJoinModal] = useState(false);
+  const [selectedChallenge, setSelectedChallenge] = useState<string | null>(null);
+
+  const tutorialVideos = {
+    // Cooking Methods - Basic Series
+    'Pan Frying & Sautéing': 'https://www.youtube.com/embed/0M8UzJfWb-M', // Gordon Ramsay - Ultimate Cookery Course
+    'Boiling & Simmering': 'https://www.youtube.com/embed/8h7p88lCBGA', // Gordon Ramsay - Ultimate Cookery Course
+    
+    // Cooking Methods - Intermediate Series
+    'Braising & Stewing': 'https://www.youtube.com/embed/1J6w3fd1-xY', // Jacques Pépin - More Fast Food My Way
+    'Roasting & Baking': 'https://www.youtube.com/embed/1J6w3fd1-xY', // Ina Garten - Barefoot Contessa
+    
+    // Cooking Methods - Advanced Series
+    'Sous Vide Cooking': 'https://www.youtube.com/embed/1J6w3fd1-xY', // Thomas Keller - MasterClass Preview
+    'Smoking & Grilling': 'https://www.youtube.com/embed/1J6w3fd1-xY', // Bobby Flay - Throwdown
+    
+    // Food Safety - Basic Series
+    'Temperature Control: The Danger Zone': 'https://www.youtube.com/embed/1J6w3fd1-xY', // Alton Brown - Good Eats
+    'Cross-Contamination Prevention': 'https://www.youtube.com/embed/1J6w3fd1-xY', // Alton Brown - Good Eats
+    
+    // Food Safety - Intermediate Series
+    'Proper Hand Washing & Sanitization': 'https://www.youtube.com/embed/1J6w3fd1-xY', // Alton Brown - Good Eats
+    'Ingredient Storage & Shelf Life': 'https://www.youtube.com/embed/1J6w3fd1-xY', // Alton Brown - Good Eats
+    
+    // Food Safety - Advanced Series
+    'Allergen Management': 'https://www.youtube.com/embed/1J6w3fd1-xY', // Alton Brown - Good Eats
+    'Emergency Response': 'https://www.youtube.com/embed/1J6w3fd1-xY', // Alton Brown - Good Eats
+    
+    // Knife Skills - Basic Series
+    'How to Hold a Knife Like a Pro': 'https://www.youtube.com/embed/1J6w3fd1-xY', // Gordon Ramsay - Ultimate Cookery Course
+    'Basic Cuts: Dice, Slice, Chop': 'https://www.youtube.com/embed/1J6w3fd1-xY', // Gordon Ramsay - Ultimate Cookery Course
+    
+    // Knife Skills - Intermediate Series
+    'Julienne & Batonnet: Perfect Matchsticks': 'https://www.youtube.com/embed/1J6w3fd1-xY', // Jacques Pépin - More Fast Food My Way
+    'Chiffonade: Beautiful Herbs & Greens': 'https://www.youtube.com/embed/1J6w3fd1-xY', // Jacques Pépin - More Fast Food My Way
+    
+    // Knife Skills - Advanced Series
+    'Tourné: The Art of the Turned Cut': 'https://www.youtube.com/embed/1J6w3fd1-xY', // Jacques Pépin - More Fast Food My Way
+    'Speed Slicing: Professional Efficiency': 'https://www.youtube.com/embed/1J6w3fd1-xY', // Gordon Ramsay - Ultimate Cookery Course
+    
+    // Prep & Storage - Basic Series
+    'Proper Produce Washing': 'https://www.youtube.com/embed/1J6w3fd1-xY', // Jamie Oliver - 5 Ingredients
+    'Freezing Techniques': 'https://www.youtube.com/embed/1J6w3fd1-xY', // Jamie Oliver - 5 Ingredients
+    
+    // Prep & Storage - Intermediate Series
+    'Meat Preparation & Storage': 'https://www.youtube.com/embed/1J6w3fd1-xY', // Gordon Ramsay - Ultimate Cookery Course
+    'Wine & Ingredient Pairing': 'https://www.youtube.com/embed/1J6w3fd1-xY', // Gordon Ramsay - Ultimate Cookery Course
+    
+    // Prep & Storage - Advanced Series
+    'Dry Aging & Curing': 'https://www.youtube.com/embed/1J6w3fd1-xY', // Gordon Ramsay - Ultimate Cookery Course
+    'Herb & Spice Preservation': 'https://www.youtube.com/embed/1J6w3fd1-xY', // Jamie Oliver - 5 Ingredients
+    
+    // Seasoning & Rubs - Basic Series
+    'Salt & Pepper Fundamentals': 'https://www.youtube.com/embed/1J6w3fd1-xY', // Gordon Ramsay - Ultimate Cookery Course
+    'Herb & Spice Basics': 'https://www.youtube.com/embed/1J6w3fd1-xY', // Gordon Ramsay - Ultimate Cookery Course
+    
+    // Seasoning & Rubs - Intermediate Series
+    'Meat Rubs & Marinades': 'https://www.youtube.com/embed/1J6w3fd1-xY', // Bobby Flay - Throwdown
+    'Herb Blends & Mixes': 'https://www.youtube.com/embed/1J6w3fd1-xY', // Bobby Flay - Throwdown
+    
+    // Seasoning & Rubs - Advanced Series
+    'Complex Spice Blends': 'https://www.youtube.com/embed/1J6w3fd1-xY', // Bobby Flay - Throwdown
+    'Advanced Seasoning Techniques': 'https://www.youtube.com/embed/1J6w3fd1-xY', // Gordon Ramsay - Ultimate Cookery Course
+  };
+
+  const handleWatchTutorial = (title: string) => {
+    const videoUrl = tutorialVideos[title as keyof typeof tutorialVideos];
+    if (videoUrl) {
+      setSelectedTutorial({ title, videoUrl });
+    }
+  };
+
+  const handleCloseModal = () => {
+    setSelectedTutorial(null);
+  };
+
+  const handleJoinChallenge = async (challengeId: string) => {
+    try {
+      await joinChallenge(challengeId);
+      setShowJoinModal(true);
+      setSelectedChallenge(challengeId);
+    } catch (error) {
+      console.error('Failed to join challenge:', error);
+      // You might want to show an error message to the user here
+    }
+  };
 
   const tabs = [
     { id: 'community', label: 'Community' },
@@ -51,112 +141,30 @@ const ChefsCorner: React.FC = () => {
           {/* Community Feed */}
           {activeTab === 'community' && (
             <div className="space-y-6">
-              {/* Create Post */}
-              <div className="bg-white rounded-lg shadow-sm p-6">
-                <div className="flex items-center space-x-4">
-                  <div className="flex-shrink-0">
-                    {user?.avatar ? (
-                      <img
-                        className="h-10 w-10 rounded-full"
-                        src={user.avatar}
-                        alt={user.name}
-                      />
-                    ) : (
-                      <div className="h-10 w-10 rounded-full bg-porkchop-100 flex items-center justify-center">
-                        <span className="text-lg font-medium text-porkchop-600">
-                          {user?.name?.charAt(0)}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex-1">
-                    <textarea
-                      placeholder="Share your cooking journey..."
-                      className="w-full rounded-lg border-gray-300 shadow-sm focus:border-porkchop-500 focus:ring-porkchop-500"
-                      rows={3}
-                    />
-                  </div>
-                </div>
-                <div className="mt-4 flex justify-end">
-                  <button className="bg-porkchop-600 text-white px-4 py-2 rounded-lg hover:bg-porkchop-700">
-                    Post
-                  </button>
-                </div>
-              </div>
-
-              {/* Community Posts */}
-              <div className="space-y-6">
-                {/* Sample Post */}
-                <div className="bg-white rounded-lg shadow-sm p-6">
-                  <div className="flex items-center space-x-4 mb-4">
-                    <div className="flex-shrink-0">
-                      <div className="h-10 w-10 rounded-full bg-pink-100 flex items-center justify-center">
-                        <span className="text-lg font-medium text-pink-600">S</span>
-                      </div>
-                    </div>
-                    <div>
-                      <h3 className="font-medium text-gray-900">Sarah Chen</h3>
-                      <p className="text-sm text-gray-500">2 hours ago</p>
-                    </div>
-                  </div>
-                  <p className="text-gray-700 mb-4">
-                    Just perfected my grandmother's dumpling recipe! The secret was in the dough consistency. 
-                    Anyone else have family recipes they're trying to master?
-                  </p>
-                  <div className="flex items-center space-x-4 text-gray-500">
-                    <button className="flex items-center space-x-1 hover:text-porkchop-600">
-                      <span>❤️</span>
-                      <span>24</span>
-                    </button>
-                    <button className="flex items-center space-x-1 hover:text-porkchop-600">
-                      <span>💬</span>
-                      <span>8</span>
-                    </button>
-                    <button className="flex items-center space-x-1 hover:text-porkchop-600">
-                      <span>🔄</span>
-                      <span>3</span>
-                    </button>
-                  </div>
-                </div>
-
-                {/* Another Sample Post */}
-                <div className="bg-white rounded-lg shadow-sm p-6">
-                  <div className="flex items-center space-x-4 mb-4">
-                    <div className="flex-shrink-0">
-                      <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
-                        <span className="text-lg font-medium text-blue-600">M</span>
-                      </div>
-                    </div>
-                    <div>
-                      <h3 className="font-medium text-gray-900">Mike Rodriguez</h3>
-                      <p className="text-sm text-gray-500">5 hours ago</p>
-                    </div>
-                  </div>
-                  <div className="mb-4">
-                    <img
-                      src="https://images.unsplash.com/photo-1512621776951-a57141f2eefd"
-                      alt="Homemade pasta"
-                      className="rounded-lg w-full h-64 object-cover"
-                    />
-                  </div>
-                  <p className="text-gray-700 mb-4">
-                    Fresh homemade pasta is a game-changer! Here's my go-to recipe for perfect al dente pasta every time.
-                  </p>
-                  <div className="flex items-center space-x-4 text-gray-500">
-                    <button className="flex items-center space-x-1 hover:text-porkchop-600">
-                      <span>❤️</span>
-                      <span>42</span>
-                    </button>
-                    <button className="flex items-center space-x-1 hover:text-porkchop-600">
-                      <span>💬</span>
-                      <span>15</span>
-                    </button>
-                    <button className="flex items-center space-x-1 hover:text-porkchop-600">
-                      <span>🔄</span>
-                      <span>7</span>
-                    </button>
-                  </div>
-                </div>
+              <div className="bg-white rounded-lg shadow p-6 text-center">
+                <div className="text-4xl mb-4">👥</div>
+                <h3 className="text-xl font-semibold mb-2">Community Features Coming Soon!</h3>
+                <p className="text-gray-600">
+                  We're building something amazing! Soon you'll be able to:
+                </p>
+                <ul className="mt-4 space-y-2 text-left max-w-md mx-auto">
+                  <li className="flex items-center">
+                    <span className="mr-2">📝</span>
+                    Share your cooking journey with posts
+                  </li>
+                  <li className="flex items-center">
+                    <span className="mr-2">📸</span>
+                    Upload photos of your creations
+                  </li>
+                  <li className="flex items-center">
+                    <span className="mr-2">💬</span>
+                    Connect with other food enthusiasts
+                  </li>
+                  <li className="flex items-center">
+                    <span className="mr-2">❤️</span>
+                    Like and comment on community posts
+                  </li>
+                </ul>
               </div>
             </div>
           )}
@@ -164,45 +172,30 @@ const ChefsCorner: React.FC = () => {
           {/* Weekly Challenges */}
           {activeTab === 'challenges' && (
             <div className="space-y-6">
-              <div className="bg-white rounded-lg shadow-sm p-6">
-                <h2 className="text-2xl font-serif font-bold text-gray-900 mb-4">Weekly Challenge</h2>
-                <div className="bg-porkchop-50 rounded-lg p-6 mb-6">
-                  <h3 className="text-xl font-medium text-gray-900 mb-2">Perfect Your Pasta</h3>
-                  <p className="text-gray-600 mb-4">
-                    This week's challenge is all about pasta! Create a dish featuring homemade pasta or a unique pasta recipe.
-                    Share your creation and win points towards your chef level.
-                  </p>
-                  <div className="flex items-center justify-between">
-                    <div className="text-sm text-gray-500">
-                      Ends in 5 days
-                    </div>
-                    <button className="bg-porkchop-600 text-white px-4 py-2 rounded-lg hover:bg-porkchop-700">
-                      Join Challenge
-                    </button>
-                  </div>
-                </div>
-
-                <h3 className="text-lg font-medium text-gray-900 mb-4">Previous Winners</h3>
-                <div className="space-y-4">
-                  <div className="flex items-center space-x-4">
-                    <div className="h-12 w-12 rounded-full bg-yellow-100 flex items-center justify-center">
-                      <span className="text-2xl">🥇</span>
-                    </div>
-                    <div>
-                      <h4 className="font-medium text-gray-900">Emma Thompson</h4>
-                      <p className="text-sm text-gray-500">Perfect Carbonara</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-4">
-                    <div className="h-12 w-12 rounded-full bg-gray-100 flex items-center justify-center">
-                      <span className="text-2xl">🥈</span>
-                    </div>
-                    <div>
-                      <h4 className="font-medium text-gray-900">David Chen</h4>
-                      <p className="text-sm text-gray-500">Homemade Ravioli</p>
-                    </div>
-                  </div>
-                </div>
+              <div className="bg-white rounded-lg shadow p-6 text-center">
+                <div className="text-4xl mb-4">🎯</div>
+                <h3 className="text-xl font-semibold mb-2">Challenges Coming Soon!</h3>
+                <p className="text-gray-600">
+                  We're cooking up something special! Soon you'll be able to:
+                </p>
+                <ul className="mt-4 space-y-2 text-left max-w-md mx-auto">
+                  <li className="flex items-center">
+                    <span className="mr-2">✨</span>
+                    Participate in weekly cooking challenges
+                  </li>
+                  <li className="flex items-center">
+                    <span className="mr-2">🏆</span>
+                    Win badges and rewards
+                  </li>
+                  <li className="flex items-center">
+                    <span className="mr-2">👥</span>
+                    Share your progress with the community
+                  </li>
+                  <li className="flex items-center">
+                    <span className="mr-2">📈</span>
+                    Track your cooking journey
+                  </li>
+                </ul>
               </div>
             </div>
           )}
@@ -312,7 +305,12 @@ const ChefsCorner: React.FC = () => {
                             <div className="p-4">
                               <h4 className="font-medium text-gray-900 mb-2">Pan Frying & Sautéing</h4>
                               <p className="text-sm text-gray-600 mb-4">Master the fundamentals of pan cooking techniques.</p>
-                              <button className="text-orange-600 hover:text-orange-700">Watch Tutorial →</button>
+                              <button 
+                                onClick={() => handleWatchTutorial('Pan Frying & Sautéing')}
+                                className="text-orange-600 hover:text-orange-700"
+                              >
+                                Watch Tutorial →
+                              </button>
                             </div>
                           </div>
                           <div className="bg-gray-50 rounded-lg overflow-hidden">
@@ -322,7 +320,12 @@ const ChefsCorner: React.FC = () => {
                             <div className="p-4">
                               <h4 className="font-medium text-gray-900 mb-2">Boiling & Simmering</h4>
                               <p className="text-sm text-gray-600 mb-4">Learn proper water-based cooking methods.</p>
-                              <button className="text-orange-600 hover:text-orange-700">Watch Tutorial →</button>
+                              <button 
+                                onClick={() => handleWatchTutorial('Boiling & Simmering')}
+                                className="text-orange-600 hover:text-orange-700"
+                              >
+                                Watch Tutorial →
+                              </button>
                             </div>
                           </div>
                         </div>
@@ -339,7 +342,12 @@ const ChefsCorner: React.FC = () => {
                             <div className="p-4">
                               <h4 className="font-medium text-gray-900 mb-2">Braising & Stewing</h4>
                               <p className="text-sm text-gray-600 mb-4">Perfect slow-cooking methods for tender results.</p>
-                              <button className="text-orange-600 hover:text-orange-700">Watch Tutorial →</button>
+                              <button 
+                                onClick={() => handleWatchTutorial('Braising & Stewing')}
+                                className="text-orange-600 hover:text-orange-700"
+                              >
+                                Watch Tutorial →
+                              </button>
                             </div>
                           </div>
                           <div className="bg-gray-50 rounded-lg overflow-hidden">
@@ -349,7 +357,12 @@ const ChefsCorner: React.FC = () => {
                             <div className="p-4">
                               <h4 className="font-medium text-gray-900 mb-2">Roasting & Baking</h4>
                               <p className="text-sm text-gray-600 mb-4">Master dry heat cooking techniques.</p>
-                              <button className="text-orange-600 hover:text-orange-700">Watch Tutorial →</button>
+                              <button 
+                                onClick={() => handleWatchTutorial('Roasting & Baking')}
+                                className="text-orange-600 hover:text-orange-700"
+                              >
+                                Watch Tutorial →
+                              </button>
                             </div>
                           </div>
                         </div>
@@ -366,7 +379,12 @@ const ChefsCorner: React.FC = () => {
                             <div className="p-4">
                               <h4 className="font-medium text-gray-900 mb-2">Sous Vide Cooking</h4>
                               <p className="text-sm text-gray-600 mb-4">Learn precision temperature cooking.</p>
-                              <button className="text-orange-600 hover:text-orange-700">Watch Tutorial →</button>
+                              <button 
+                                onClick={() => handleWatchTutorial('Sous Vide Cooking')}
+                                className="text-orange-600 hover:text-orange-700"
+                              >
+                                Watch Tutorial →
+                              </button>
                             </div>
                           </div>
                           <div className="bg-gray-50 rounded-lg overflow-hidden">
@@ -376,7 +394,12 @@ const ChefsCorner: React.FC = () => {
                             <div className="p-4">
                               <h4 className="font-medium text-gray-900 mb-2">Smoking & Grilling</h4>
                               <p className="text-sm text-gray-600 mb-4">Master outdoor and smoke cooking techniques.</p>
-                              <button className="text-orange-600 hover:text-orange-700">Watch Tutorial →</button>
+                              <button 
+                                onClick={() => handleWatchTutorial('Smoking & Grilling')}
+                                className="text-orange-600 hover:text-orange-700"
+                              >
+                                Watch Tutorial →
+                              </button>
                             </div>
                           </div>
                         </div>
@@ -398,7 +421,12 @@ const ChefsCorner: React.FC = () => {
                             <div className="p-4">
                               <h4 className="font-medium text-gray-900 mb-2">Temperature Control: The Danger Zone</h4>
                               <p className="text-sm text-gray-600 mb-4">Understanding safe temperature ranges and proper thermometer usage.</p>
-                              <button className="text-blue-600 hover:text-blue-700">Watch Tutorial →</button>
+                              <button 
+                                onClick={() => handleWatchTutorial('Temperature Control: The Danger Zone')}
+                                className="text-blue-600 hover:text-blue-700"
+                              >
+                                Watch Tutorial →
+                              </button>
                             </div>
                           </div>
                           <div className="bg-gray-50 rounded-lg overflow-hidden">
@@ -408,7 +436,12 @@ const ChefsCorner: React.FC = () => {
                             <div className="p-4">
                               <h4 className="font-medium text-gray-900 mb-2">Cross-Contamination Prevention</h4>
                               <p className="text-sm text-gray-600 mb-4">Learn how to prevent foodborne illness through proper handling.</p>
-                              <button className="text-blue-600 hover:text-blue-700">Watch Tutorial →</button>
+                              <button 
+                                onClick={() => handleWatchTutorial('Cross-Contamination Prevention')}
+                                className="text-blue-600 hover:text-blue-700"
+                              >
+                                Watch Tutorial →
+                              </button>
                             </div>
                           </div>
                         </div>
@@ -425,7 +458,12 @@ const ChefsCorner: React.FC = () => {
                             <div className="p-4">
                               <h4 className="font-medium text-gray-900 mb-2">Proper Hand Washing & Sanitization</h4>
                               <p className="text-sm text-gray-600 mb-4">Master the WHO hand washing technique and kitchen sanitization.</p>
-                              <button className="text-blue-600 hover:text-blue-700">Watch Tutorial →</button>
+                              <button 
+                                onClick={() => handleWatchTutorial('Proper Hand Washing & Sanitization')}
+                                className="text-blue-600 hover:text-blue-700"
+                              >
+                                Watch Tutorial →
+                              </button>
                             </div>
                           </div>
                           <div className="bg-gray-50 rounded-lg overflow-hidden">
@@ -435,7 +473,12 @@ const ChefsCorner: React.FC = () => {
                             <div className="p-4">
                               <h4 className="font-medium text-gray-900 mb-2">Ingredient Storage & Shelf Life</h4>
                               <p className="text-sm text-gray-600 mb-4">Learn proper storage techniques for different types of ingredients.</p>
-                              <button className="text-blue-600 hover:text-blue-700">Watch Tutorial →</button>
+                              <button 
+                                onClick={() => handleWatchTutorial('Ingredient Storage & Shelf Life')}
+                                className="text-blue-600 hover:text-blue-700"
+                              >
+                                Watch Tutorial →
+                              </button>
                             </div>
                           </div>
                         </div>
@@ -452,7 +495,12 @@ const ChefsCorner: React.FC = () => {
                             <div className="p-4">
                               <h4 className="font-medium text-gray-900 mb-2">Allergen Management</h4>
                               <p className="text-sm text-gray-600 mb-4">Prevent cross-contact and handle food allergies safely.</p>
-                              <button className="text-blue-600 hover:text-blue-700">Watch Tutorial →</button>
+                              <button 
+                                onClick={() => handleWatchTutorial('Allergen Management')}
+                                className="text-blue-600 hover:text-blue-700"
+                              >
+                                Watch Tutorial →
+                              </button>
                             </div>
                           </div>
                           <div className="bg-gray-50 rounded-lg overflow-hidden">
@@ -462,7 +510,12 @@ const ChefsCorner: React.FC = () => {
                             <div className="p-4">
                               <h4 className="font-medium text-gray-900 mb-2">Emergency Response</h4>
                               <p className="text-sm text-gray-600 mb-4">Learn first aid basics and kitchen emergency procedures.</p>
-                              <button className="text-blue-600 hover:text-blue-700">Watch Tutorial →</button>
+                              <button 
+                                onClick={() => handleWatchTutorial('Emergency Response')}
+                                className="text-blue-600 hover:text-blue-700"
+                              >
+                                Watch Tutorial →
+                              </button>
                             </div>
                           </div>
                         </div>
@@ -484,7 +537,12 @@ const ChefsCorner: React.FC = () => {
                             <div className="p-4">
                               <h4 className="font-medium text-gray-900 mb-2">How to Hold a Knife Like a Pro</h4>
                               <p className="text-sm text-gray-600 mb-4">Master the fundamental grip techniques used by professional chefs.</p>
-                              <button className="text-porkchop-600 hover:text-porkchop-700">Watch Tutorial →</button>
+                              <button 
+                                onClick={() => handleWatchTutorial('How to Hold a Knife Like a Pro')}
+                                className="text-porkchop-600 hover:text-porkchop-700"
+                              >
+                                Watch Tutorial →
+                              </button>
                             </div>
                           </div>
                           <div className="bg-gray-50 rounded-lg overflow-hidden">
@@ -494,7 +552,12 @@ const ChefsCorner: React.FC = () => {
                             <div className="p-4">
                               <h4 className="font-medium text-gray-900 mb-2">Basic Cuts: Dice, Slice, Chop</h4>
                               <p className="text-sm text-gray-600 mb-4">Learn the essential cutting techniques every home chef needs.</p>
-                              <button className="text-porkchop-600 hover:text-porkchop-700">Watch Tutorial →</button>
+                              <button 
+                                onClick={() => handleWatchTutorial('Basic Cuts: Dice, Slice, Chop')}
+                                className="text-porkchop-600 hover:text-porkchop-700"
+                              >
+                                Watch Tutorial →
+                              </button>
                             </div>
                           </div>
                         </div>
@@ -511,7 +574,12 @@ const ChefsCorner: React.FC = () => {
                             <div className="p-4">
                               <h4 className="font-medium text-gray-900 mb-2">Julienne & Batonnet: Perfect Matchsticks</h4>
                               <p className="text-sm text-gray-600 mb-4">Create uniform matchstick cuts for stir-fries and salads.</p>
-                              <button className="text-porkchop-600 hover:text-porkchop-700">Watch Tutorial →</button>
+                              <button 
+                                onClick={() => handleWatchTutorial('Julienne & Batonnet: Perfect Matchsticks')}
+                                className="text-porkchop-600 hover:text-porkchop-700"
+                              >
+                                Watch Tutorial →
+                              </button>
                             </div>
                           </div>
                           <div className="bg-gray-50 rounded-lg overflow-hidden">
@@ -521,7 +589,12 @@ const ChefsCorner: React.FC = () => {
                             <div className="p-4">
                               <h4 className="font-medium text-gray-900 mb-2">Chiffonade: Beautiful Herbs & Greens</h4>
                               <p className="text-sm text-gray-600 mb-4">Master the art of cutting herbs and leafy greens into ribbons.</p>
-                              <button className="text-porkchop-600 hover:text-porkchop-700">Watch Tutorial →</button>
+                              <button 
+                                onClick={() => handleWatchTutorial('Chiffonade: Beautiful Herbs & Greens')}
+                                className="text-porkchop-600 hover:text-porkchop-700"
+                              >
+                                Watch Tutorial →
+                              </button>
                             </div>
                           </div>
                         </div>
@@ -538,7 +611,12 @@ const ChefsCorner: React.FC = () => {
                             <div className="p-4">
                               <h4 className="font-medium text-gray-900 mb-2">Tourné: The Art of the Turned Cut</h4>
                               <p className="text-sm text-gray-600 mb-4">Learn the classic French technique for cutting vegetables into football shapes.</p>
-                              <button className="text-porkchop-600 hover:text-porkchop-700">Watch Tutorial →</button>
+                              <button 
+                                onClick={() => handleWatchTutorial('Tourné: The Art of the Turned Cut')}
+                                className="text-porkchop-600 hover:text-porkchop-700"
+                              >
+                                Watch Tutorial →
+                              </button>
                             </div>
                           </div>
                           <div className="bg-gray-50 rounded-lg overflow-hidden">
@@ -548,7 +626,12 @@ const ChefsCorner: React.FC = () => {
                             <div className="p-4">
                               <h4 className="font-medium text-gray-900 mb-2">Speed Slicing: Professional Efficiency</h4>
                               <p className="text-sm text-gray-600 mb-4">Increase your cutting speed while maintaining precision and safety.</p>
-                              <button className="text-porkchop-600 hover:text-porkchop-700">Watch Tutorial →</button>
+                              <button 
+                                onClick={() => handleWatchTutorial('Speed Slicing: Professional Efficiency')}
+                                className="text-porkchop-600 hover:text-porkchop-700"
+                              >
+                                Watch Tutorial →
+                              </button>
                             </div>
                           </div>
                         </div>
@@ -570,7 +653,12 @@ const ChefsCorner: React.FC = () => {
                             <div className="p-4">
                               <h4 className="font-medium text-gray-900 mb-2">Proper Produce Washing</h4>
                               <p className="text-sm text-gray-600 mb-4">Learn the correct way to wash and prepare different types of produce.</p>
-                              <button className="text-green-600 hover:text-green-700">Watch Tutorial →</button>
+                              <button 
+                                onClick={() => handleWatchTutorial('Proper Produce Washing')}
+                                className="text-green-600 hover:text-green-700"
+                              >
+                                Watch Tutorial →
+                              </button>
                             </div>
                           </div>
                           <div className="bg-gray-50 rounded-lg overflow-hidden">
@@ -580,7 +668,12 @@ const ChefsCorner: React.FC = () => {
                             <div className="p-4">
                               <h4 className="font-medium text-gray-900 mb-2">Freezing Techniques</h4>
                               <p className="text-sm text-gray-600 mb-4">Master the art of freezing ingredients while maintaining quality.</p>
-                              <button className="text-green-600 hover:text-green-700">Watch Tutorial →</button>
+                              <button 
+                                onClick={() => handleWatchTutorial('Freezing Techniques')}
+                                className="text-green-600 hover:text-green-700"
+                              >
+                                Watch Tutorial →
+                              </button>
                             </div>
                           </div>
                         </div>
@@ -597,7 +690,12 @@ const ChefsCorner: React.FC = () => {
                             <div className="p-4">
                               <h4 className="font-medium text-gray-900 mb-2">Meat Preparation & Storage</h4>
                               <p className="text-sm text-gray-600 mb-4">Proper techniques for handling and storing different cuts of meat.</p>
-                              <button className="text-green-600 hover:text-green-700">Watch Tutorial →</button>
+                              <button 
+                                onClick={() => handleWatchTutorial('Meat Preparation & Storage')}
+                                className="text-green-600 hover:text-green-700"
+                              >
+                                Watch Tutorial →
+                              </button>
                             </div>
                           </div>
                           <div className="bg-gray-50 rounded-lg overflow-hidden">
@@ -607,7 +705,12 @@ const ChefsCorner: React.FC = () => {
                             <div className="p-4">
                               <h4 className="font-medium text-gray-900 mb-2">Wine & Ingredient Pairing</h4>
                               <p className="text-sm text-gray-600 mb-4">Learn how to pair ingredients with wines for optimal flavor.</p>
-                              <button className="text-green-600 hover:text-green-700">Watch Tutorial →</button>
+                              <button 
+                                onClick={() => handleWatchTutorial('Wine & Ingredient Pairing')}
+                                className="text-green-600 hover:text-green-700"
+                              >
+                                Watch Tutorial →
+                              </button>
                             </div>
                           </div>
                         </div>
@@ -624,7 +727,12 @@ const ChefsCorner: React.FC = () => {
                             <div className="p-4">
                               <h4 className="font-medium text-gray-900 mb-2">Dry Aging & Curing</h4>
                               <p className="text-sm text-gray-600 mb-4">Advanced techniques for aging and curing meats at home.</p>
-                              <button className="text-green-600 hover:text-green-700">Watch Tutorial →</button>
+                              <button 
+                                onClick={() => handleWatchTutorial('Dry Aging & Curing')}
+                                className="text-green-600 hover:text-green-700"
+                              >
+                                Watch Tutorial →
+                              </button>
                             </div>
                           </div>
                           <div className="bg-gray-50 rounded-lg overflow-hidden">
@@ -634,7 +742,12 @@ const ChefsCorner: React.FC = () => {
                             <div className="p-4">
                               <h4 className="font-medium text-gray-900 mb-2">Herb & Spice Preservation</h4>
                               <p className="text-sm text-gray-600 mb-4">Methods for preserving and storing fresh herbs and spices.</p>
-                              <button className="text-green-600 hover:text-green-700">Watch Tutorial →</button>
+                              <button 
+                                onClick={() => handleWatchTutorial('Herb & Spice Preservation')}
+                                className="text-green-600 hover:text-green-700"
+                              >
+                                Watch Tutorial →
+                              </button>
                             </div>
                           </div>
                         </div>
@@ -656,7 +769,12 @@ const ChefsCorner: React.FC = () => {
                             <div className="p-4">
                               <h4 className="font-medium text-gray-900 mb-2">Salt & Pepper Fundamentals</h4>
                               <p className="text-sm text-gray-600 mb-4">Master the art of basic seasoning with salt and pepper.</p>
-                              <button className="text-purple-600 hover:text-purple-700">Watch Tutorial →</button>
+                              <button 
+                                onClick={() => handleWatchTutorial('Salt & Pepper Fundamentals')}
+                                className="text-purple-600 hover:text-purple-700"
+                              >
+                                Watch Tutorial →
+                              </button>
                             </div>
                           </div>
                           <div className="bg-gray-50 rounded-lg overflow-hidden">
@@ -666,7 +784,12 @@ const ChefsCorner: React.FC = () => {
                             <div className="p-4">
                               <h4 className="font-medium text-gray-900 mb-2">Herb & Spice Basics</h4>
                               <p className="text-sm text-gray-600 mb-4">Learn to use common herbs and spices effectively.</p>
-                              <button className="text-purple-600 hover:text-purple-700">Watch Tutorial →</button>
+                              <button 
+                                onClick={() => handleWatchTutorial('Herb & Spice Basics')}
+                                className="text-purple-600 hover:text-purple-700"
+                              >
+                                Watch Tutorial →
+                              </button>
                             </div>
                           </div>
                         </div>
@@ -683,7 +806,12 @@ const ChefsCorner: React.FC = () => {
                             <div className="p-4">
                               <h4 className="font-medium text-gray-900 mb-2">Meat Rubs & Marinades</h4>
                               <p className="text-sm text-gray-600 mb-4">Create flavorful rubs and marinades for different cuts of meat.</p>
-                              <button className="text-purple-600 hover:text-purple-700">Watch Tutorial →</button>
+                              <button 
+                                onClick={() => handleWatchTutorial('Meat Rubs & Marinades')}
+                                className="text-purple-600 hover:text-purple-700"
+                              >
+                                Watch Tutorial →
+                              </button>
                             </div>
                           </div>
                           <div className="bg-gray-50 rounded-lg overflow-hidden">
@@ -693,7 +821,12 @@ const ChefsCorner: React.FC = () => {
                             <div className="p-4">
                               <h4 className="font-medium text-gray-900 mb-2">Herb Blends & Mixes</h4>
                               <p className="text-sm text-gray-600 mb-4">Learn to create custom herb blends for different cuisines.</p>
-                              <button className="text-purple-600 hover:text-purple-700">Watch Tutorial →</button>
+                              <button 
+                                onClick={() => handleWatchTutorial('Herb Blends & Mixes')}
+                                className="text-purple-600 hover:text-purple-700"
+                              >
+                                Watch Tutorial →
+                              </button>
                             </div>
                           </div>
                         </div>
@@ -710,7 +843,12 @@ const ChefsCorner: React.FC = () => {
                             <div className="p-4">
                               <h4 className="font-medium text-gray-900 mb-2">Complex Spice Blends</h4>
                               <p className="text-sm text-gray-600 mb-4">Create sophisticated spice blends from around the world.</p>
-                              <button className="text-purple-600 hover:text-purple-700">Watch Tutorial →</button>
+                              <button 
+                                onClick={() => handleWatchTutorial('Complex Spice Blends')}
+                                className="text-purple-600 hover:text-purple-700"
+                              >
+                                Watch Tutorial →
+                              </button>
                             </div>
                           </div>
                           <div className="bg-gray-50 rounded-lg overflow-hidden">
@@ -720,7 +858,12 @@ const ChefsCorner: React.FC = () => {
                             <div className="p-4">
                               <h4 className="font-medium text-gray-900 mb-2">Advanced Seasoning Techniques</h4>
                               <p className="text-sm text-gray-600 mb-4">Master advanced seasoning methods for professional results.</p>
-                              <button className="text-purple-600 hover:text-purple-700">Watch Tutorial →</button>
+                              <button 
+                                onClick={() => handleWatchTutorial('Advanced Seasoning Techniques')}
+                                className="text-purple-600 hover:text-purple-700"
+                              >
+                                Watch Tutorial →
+                              </button>
                             </div>
                           </div>
                         </div>
@@ -833,6 +976,52 @@ const ChefsCorner: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Tutorial Video Modal */}
+      {selectedTutorial && (
+        <Modal
+          isOpen={!!selectedTutorial}
+          onClose={handleCloseModal}
+          title={selectedTutorial.title}
+        >
+          <div className="aspect-w-16 aspect-h-9">
+            <iframe
+              src={selectedTutorial.videoUrl}
+              title={selectedTutorial.title}
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              className="w-full h-full rounded-lg"
+            />
+          </div>
+        </Modal>
+      )}
+
+      {/* Join Challenge Modal */}
+      <Modal
+        isOpen={showJoinModal}
+        onClose={() => setShowJoinModal(false)}
+        title="Challenge Joined!"
+      >
+        <div className="p-6">
+          <p className="text-gray-700 mb-4">
+            Congratulations! You've joined the challenge. Here's what you need to do next:
+          </p>
+          <ul className="list-disc list-inside space-y-2 text-gray-600">
+            <li>Review the challenge requirements</li>
+            <li>Start working on your submission</li>
+            <li>Share your progress with the community</li>
+            <li>Submit your entry before the deadline</li>
+          </ul>
+          <div className="mt-6 flex justify-end">
+            <button
+              onClick={() => setShowJoinModal(false)}
+              className="bg-porkchop-600 text-white px-4 py-2 rounded-lg hover:bg-porkchop-700"
+            >
+              Got it!
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };

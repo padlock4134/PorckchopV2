@@ -3,10 +3,11 @@ import { useAuth } from '../context/AuthContext';
 import { calculateChefLevel, getChefLevelColor } from '../utils/chefLevel';
 
 const ProfilePage: React.FC = () => {
-  const { user } = useAuth();
+  const { user, updateProfile } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
-    name: user?.name || '',
+    firstName: user?.firstName || '',
+    lastName: user?.lastName || '',
     email: user?.email || '',
     bio: 'Passionate home cook and food enthusiast',
     preferences: {
@@ -22,14 +23,28 @@ const ProfilePage: React.FC = () => {
       youtube: user?.socialLinks?.youtube || ''
     }
   });
+  const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const chefLevel = calculateChefLevel(user?.recipesCreated || 0);
   const levelColor = getChefLevelColor(chefLevel.level);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implement profile update logic
-    setIsEditing(false);
+    try {
+      setError('');
+      setIsSubmitting(true);
+      await updateProfile({
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        socialLinks: formData.socialLinks
+      });
+      setIsEditing(false);
+    } catch (err) {
+      setError('Failed to update profile. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -42,19 +57,21 @@ const ProfilePage: React.FC = () => {
               {user?.avatar ? (
                 <img
                   src={user.avatar}
-                  alt={user.name}
+                  alt={`${user.firstName} ${user.lastName}`}
                   className="h-16 w-16 rounded-full"
                 />
               ) : (
                 <div className="h-16 w-16 rounded-full bg-porkchop-100 flex items-center justify-center">
                   <span className="text-2xl text-porkchop-600">
-                    {user?.name?.charAt(0)}
+                    {user?.firstName?.charAt(0)}
                   </span>
                 </div>
               )}
               <div className="ml-4">
                 <div className="flex items-center space-x-2">
-                  <h1 className="text-2xl font-bold text-gray-900">{user?.name}</h1>
+                  <h1 className="text-2xl font-bold text-gray-900">
+                    {user ? `${user.firstName} ${user.lastName}` : ''}
+                  </h1>
                   <span className={`text-sm px-2 py-0.5 rounded-full ${levelColor}`}>
                     Level {chefLevel.level}
                   </span>
@@ -77,6 +94,7 @@ const ProfilePage: React.FC = () => {
             <button
               onClick={() => setIsEditing(!isEditing)}
               className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-porkchop-600 hover:bg-porkchop-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-porkchop-500"
+              disabled={isSubmitting}
             >
               {isEditing ? 'Cancel' : 'Edit Profile'}
             </button>
@@ -85,20 +103,46 @@ const ProfilePage: React.FC = () => {
 
         {/* Profile Content */}
         <div className="px-4 py-5 sm:px-6">
+          {error && (
+            <div className="mb-4 bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded relative" role="alert">
+              <span className="block sm:inline">{error}</span>
+            </div>
+          )}
+          
           {isEditing ? (
             <form onSubmit={handleSubmit} className="space-y-6">
-              <div>
-                <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                  Name
-                </label>
-                <input
-                  type="text"
-                  name="name"
-                  id="name"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-porkchop-500 focus:ring-porkchop-500 sm:text-sm"
-                />
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                <div>
+                  <label htmlFor="firstName" className="block text-sm font-medium text-gray-700">
+                    First Name
+                  </label>
+                  <input
+                    type="text"
+                    name="firstName"
+                    id="firstName"
+                    value={formData.firstName}
+                    onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-porkchop-500 focus:ring-porkchop-500 sm:text-sm"
+                    disabled={isSubmitting}
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="lastName" className="block text-sm font-medium text-gray-700">
+                    Last Name
+                  </label>
+                  <input
+                    type="text"
+                    name="lastName"
+                    id="lastName"
+                    value={formData.lastName}
+                    onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-porkchop-500 focus:ring-porkchop-500 sm:text-sm"
+                    disabled={isSubmitting}
+                    required
+                  />
+                </div>
               </div>
 
               <div>
@@ -112,6 +156,7 @@ const ProfilePage: React.FC = () => {
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-porkchop-500 focus:ring-porkchop-500 sm:text-sm"
+                  disabled={isSubmitting}
                 />
               </div>
 
@@ -126,6 +171,7 @@ const ProfilePage: React.FC = () => {
                   value={formData.bio}
                   onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-porkchop-500 focus:ring-porkchop-500 sm:text-sm"
+                  disabled={isSubmitting}
                 />
               </div>
 
@@ -145,6 +191,7 @@ const ProfilePage: React.FC = () => {
                       })
                     }
                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-porkchop-500 focus:ring-porkchop-500 sm:text-sm"
+                    disabled={isSubmitting}
                   >
                     <option>All cuisines</option>
                     <option>Asian</option>
@@ -169,6 +216,7 @@ const ProfilePage: React.FC = () => {
                       })
                     }
                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-porkchop-500 focus:ring-porkchop-500 sm:text-sm"
+                    disabled={isSubmitting}
                   >
                     <option>None</option>
                     <option>Vegetarian</option>
@@ -193,6 +241,7 @@ const ProfilePage: React.FC = () => {
                       })
                     }
                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-porkchop-500 focus:ring-porkchop-500 sm:text-sm"
+                    disabled={isSubmitting}
                   >
                     <option>Beginner</option>
                     <option>Intermediate</option>
@@ -225,6 +274,7 @@ const ProfilePage: React.FC = () => {
                         })}
                         className="flex-1 block w-full rounded-none rounded-r-md border-gray-300 focus:border-porkchop-500 focus:ring-porkchop-500 sm:text-sm"
                         placeholder="username"
+                        disabled={isSubmitting}
                       />
                     </div>
                   </div>
@@ -248,6 +298,7 @@ const ProfilePage: React.FC = () => {
                         })}
                         className="flex-1 block w-full rounded-none rounded-r-md border-gray-300 focus:border-porkchop-500 focus:ring-porkchop-500 sm:text-sm"
                         placeholder="username"
+                        disabled={isSubmitting}
                       />
                     </div>
                   </div>
@@ -271,6 +322,7 @@ const ProfilePage: React.FC = () => {
                         })}
                         className="flex-1 block w-full rounded-none rounded-r-md border-gray-300 focus:border-porkchop-500 focus:ring-porkchop-500 sm:text-sm"
                         placeholder="username"
+                        disabled={isSubmitting}
                       />
                     </div>
                   </div>
@@ -290,6 +342,7 @@ const ProfilePage: React.FC = () => {
                       })}
                       className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-porkchop-500 focus:ring-porkchop-500 sm:text-sm"
                       placeholder="https://your-website.com"
+                      disabled={isSubmitting}
                     />
                   </div>
 
@@ -312,6 +365,7 @@ const ProfilePage: React.FC = () => {
                         })}
                         className="flex-1 block w-full rounded-none rounded-r-md border-gray-300 focus:border-porkchop-500 focus:ring-porkchop-500 sm:text-sm"
                         placeholder="channel"
+                        disabled={isSubmitting}
                       />
                     </div>
                   </div>
@@ -322,6 +376,7 @@ const ProfilePage: React.FC = () => {
                 <button
                   type="submit"
                   className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-porkchop-600 hover:bg-porkchop-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-porkchop-500"
+                  disabled={isSubmitting}
                 >
                   Save Changes
                 </button>

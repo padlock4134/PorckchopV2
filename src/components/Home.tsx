@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useSavedRecipes } from '../context/SavedRecipesContext';
 import { calculateChefLevel, getChefLevelColor } from '../utils/chefLevel';
 import { getDailyChefQuote } from '../utils/chefQuotes';
+import LiveActivity from './LiveActivity';
 
 const Home: React.FC = () => {
   const { user } = useAuth();
@@ -69,11 +70,8 @@ const Home: React.FC = () => {
             {/* Middle Section - Welcome Text */}
             <div className="flex-1 text-center">
               <h1 className="text-5xl font-serif font-bold text-gray-900 mb-3">
-                Welcome Back!
+                Welcome Back, {user?.firstName || 'there'}!
               </h1>
-              <p className="text-3xl text-gray-800 mb-4">
-                {user?.name || 'there'}
-              </p>
               <p className="text-2xl text-gray-600 mb-6">
                 Ready to create something delicious today?
               </p>
@@ -101,38 +99,63 @@ const Home: React.FC = () => {
         </div>
 
         {/* Navigation Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {navigationCards.map((card) => (
-            <Link
-              key={card.title}
-              to={card.path}
-              className="block bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow"
-            >
-              <div className={`${card.color} p-6 rounded-t-lg`}>
-                {card.title === "What's in My Fridge" && (
-                  <span className="text-2xl">❄️</span>
-                )}
-                {card.title === "My Cookbook" && (
-                  <span className="text-2xl">📚</span>
-                )}
-                {card.title === "Butcher Shop" && (
-                  <span className="text-2xl">🥩</span>
-                )}
-                {card.title === "Chef's Corner" && (
-                  <span className="text-2xl">👨‍🍳</span>
-                )}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <Link to="/create-recipe" className="group h-full">
+            <div className="bg-white rounded-xl shadow-sm overflow-hidden transition-all duration-200 hover:shadow-md h-full flex flex-col">
+              <div className="bg-gray-600 p-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xl font-medium text-white">What's in My Fridge</h3>
+                  <span className="text-2xl group-hover:scale-110 transition-transform duration-200">🧊</span>
+                </div>
               </div>
-              <div className="p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  {card.title}
-                </h3>
-                <p className="text-gray-600">{card.description}</p>
-                {card.title === 'Butcher Shop' && (
-                  <span className="text-sm text-gray-500">Coming Soon →</span>
-                )}
+              <div className="p-6 flex-grow">
+                <p className="text-gray-600">Create recipes with ingredients you have</p>
               </div>
-            </Link>
-          ))}
+            </div>
+          </Link>
+
+          <Link to="/my-cookbook" className="group h-full">
+            <div className="bg-white rounded-xl shadow-sm overflow-hidden transition-all duration-200 hover:shadow-md h-full flex flex-col">
+              <div className="bg-pink-500 p-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xl font-medium text-white">My Cookbook</h3>
+                  <span className="text-2xl group-hover:scale-110 transition-transform duration-200">📚</span>
+                </div>
+              </div>
+              <div className="p-6 flex-grow">
+                <p className="text-gray-600">Access your saved recipes</p>
+              </div>
+            </div>
+          </Link>
+
+          <Link to="/butcher-shop" className="group h-full">
+            <div className="bg-white rounded-xl shadow-sm overflow-hidden transition-all duration-200 hover:shadow-md h-full flex flex-col">
+              <div className="bg-red-500 p-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xl font-medium text-white">Butcher Shop</h3>
+                  <span className="text-2xl group-hover:scale-110 transition-transform duration-200">🥩</span>
+                </div>
+              </div>
+              <div className="p-6 flex-grow">
+                <p className="text-gray-600">Connect with local vendors</p>
+                <span className="text-sm text-gray-500">Coming Soon →</span>
+              </div>
+            </div>
+          </Link>
+
+          <Link to="/chefs-corner" className="group h-full">
+            <div className="bg-white rounded-xl shadow-sm overflow-hidden transition-all duration-200 hover:shadow-md h-full flex flex-col">
+              <div className="bg-blue-500 p-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xl font-medium text-white">Chef's Corner</h3>
+                  <span className="text-2xl group-hover:scale-110 transition-transform duration-200">👨‍🍳</span>
+                </div>
+              </div>
+              <div className="p-6 flex-grow">
+                <p className="text-gray-600">Join the cooking community</p>
+              </div>
+            </div>
+          </Link>
         </div>
 
         {/* Stats Section */}
@@ -156,53 +179,7 @@ const Home: React.FC = () => {
         </div>
 
         {/* Live Activity Section */}
-        <div className="mt-12">
-          <h2 className="text-2xl font-serif font-bold text-gray-900 mb-6">Live Activity</h2>
-          <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-            <div className="p-6">
-              <div className="flex items-center space-x-4">
-                <div className="flex-shrink-0">
-                  <div className="w-12 h-12 rounded-full bg-pink-100 flex items-center justify-center">
-                    <span className="text-2xl">👩‍🍳</span>
-                  </div>
-                </div>
-                <div className="flex-1">
-                  <p className="text-gray-900 font-medium">Chef Sarah</p>
-                  <p className="text-gray-600">Just created a new recipe: Mediterranean Pasta</p>
-                </div>
-                <div className="text-sm text-gray-500">2m ago</div>
-              </div>
-            </div>
-            <div className="border-t border-gray-100 p-6">
-              <div className="flex items-center space-x-4">
-                <div className="flex-shrink-0">
-                  <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
-                    <span className="text-2xl">👨‍🍳</span>
-                  </div>
-                </div>
-                <div className="flex-1">
-                  <p className="text-gray-900 font-medium">Chef Mike</p>
-                  <p className="text-gray-600">Added a new collection: Quick Weeknight Dinners</p>
-                </div>
-                <div className="text-sm text-gray-500">5m ago</div>
-              </div>
-            </div>
-            <div className="border-t border-gray-100 p-6">
-              <div className="flex items-center space-x-4">
-                <div className="flex-shrink-0">
-                  <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
-                    <span className="text-2xl">👩‍🍳</span>
-                  </div>
-                </div>
-                <div className="flex-1">
-                  <p className="text-gray-900 font-medium">Chef Emma</p>
-                  <p className="text-gray-600">Shared a recipe: Homemade Pizza Dough</p>
-                </div>
-                <div className="text-sm text-gray-500">8m ago</div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <LiveActivity />
       </div>
     </div>
   );

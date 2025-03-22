@@ -1,9 +1,9 @@
 import React from 'react';
-import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
+import { Routes, Route, useLocation } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { SavedRecipesProvider } from './context/SavedRecipesContext';
 import { ChefFreddieProvider } from './context/ChefFreddieContext';
-import { useAuth } from './context/AuthContext';
+import { ChallengeProvider } from './context/ChallengeContext';
 import Navigation from './components/Navigation';
 import Home from './components/Home';
 import CreateRecipe from './components/CreateRecipe';
@@ -12,7 +12,7 @@ import ButcherShop from './components/ButcherShop';
 import ProfilePage from './components/ProfilePage';
 import Login from './components/Login';
 import Signup from './components/Signup';
-import PrivateRoute from './components/PrivateRoute.tsx';
+import PrivateRoute from './components/PrivateRoute';
 import GlobalChefFreddie from './components/GlobalChefFreddie';
 import ChefsCorner from './components/ChefsCorner';
 
@@ -80,7 +80,9 @@ const App: React.FC = () => {
     <AuthProvider>
       <SavedRecipesProvider>
         <ChefFreddieProvider>
-          <AppContent />
+          <ChallengeProvider>
+            <AppContent />
+          </ChallengeProvider>
         </ChefFreddieProvider>
       </SavedRecipesProvider>
     </AuthProvider>

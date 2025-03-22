@@ -35,10 +35,7 @@ const Navigation: React.FC = () => {
       <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex">
-            <div className="flex-shrink-0 flex items-center space-x-2">
-              <div className="w-6 h-6">
-                <ChefFreddieLogo />
-              </div>
+            <div className="flex-shrink-0 flex items-center">
               <Link to="/" className="text-2xl font-bold text-porkchop-900">
                 PorkChop
               </Link>
