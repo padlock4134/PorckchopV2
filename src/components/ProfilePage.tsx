@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { calculateChefLevel, getChefLevelColor } from '../utils/chefLevel';
 
@@ -23,6 +23,26 @@ const ProfilePage: React.FC = () => {
       youtube: user?.socialLinks?.youtube || ''
     }
   });
+
+  // Update form data when user changes
+  useEffect(() => {
+    if (user) {
+      setFormData(prev => ({
+        ...prev,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        socialLinks: {
+          instagram: user.socialLinks?.instagram || '',
+          facebook: user.socialLinks?.facebook || '',
+          twitter: user.socialLinks?.twitter || '',
+          website: user.socialLinks?.website || '',
+          youtube: user.socialLinks?.youtube || ''
+        }
+      }));
+    }
+  }, [user]);
+
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -75,6 +95,19 @@ const ProfilePage: React.FC = () => {
                   <span className={`text-sm px-2 py-0.5 rounded-full ${levelColor}`}>
                     Level {chefLevel.level}
                   </span>
+                  <div className={`inline-block px-3 py-1 rounded-full ${
+                    user?.subscriptionTier === 'el_dente' 
+                      ? 'bg-amber-50 border border-amber-200' 
+                      : 'bg-slate-50 border border-slate-200'
+                  }`}>
+                    <span className={`text-sm font-medium ${
+                      user?.subscriptionTier === 'el_dente'
+                        ? 'text-amber-700'
+                        : 'text-slate-700'
+                    }`}>
+                      {user?.subscriptionTier === 'el_dente' ? 'El Dente' : 'Rare'}
+                    </span>
+                  </div>
                 </div>
                 <p className="text-sm text-gray-500">{user?.email}</p>
                 <div className="mt-1">

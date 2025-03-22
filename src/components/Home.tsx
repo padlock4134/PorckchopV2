@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useSavedRecipes } from '../context/SavedRecipesContext';
 import { calculateChefLevel, getChefLevelColor } from '../utils/chefLevel';
 import { getDailyChefQuote } from '../utils/chefQuotes';
 import LiveActivity from './LiveActivity';
+import { testAirtableConnection } from '../services/airtable';
 
 const Home: React.FC = () => {
   const { user } = useAuth();
@@ -12,6 +13,7 @@ const Home: React.FC = () => {
   const chefLevel = calculateChefLevel(user?.recipesCreated || 0);
   const levelColor = getChefLevelColor(chefLevel.level);
   const chefQuote = getDailyChefQuote();
+  const [airtableStatus, setAirtableStatus] = useState<string>('');
 
   const getMedalEmoji = (level: number) => {
     if (level >= 18) return '👑'; // Legendary
@@ -21,6 +23,11 @@ const Home: React.FC = () => {
     if (level >= 6) return '🥉'; // Senior
     if (level >= 3) return '🎖️'; // Junior
     return '🍳'; // Beginner
+  };
+
+  const checkAirtableConnection = async () => {
+    const isConnected = await testAirtableConnection();
+    setAirtableStatus(isConnected ? 'Connected to Airtable!' : 'Failed to connect to Airtable');
   };
 
   const navigationCards = [
@@ -64,6 +71,19 @@ const Home: React.FC = () => {
               <div className="text-base text-gray-600 text-center mt-2">
                 {chefLevel.title}
                 <div className="text-sm text-gray-500">Level {chefLevel.level}</div>
+                <div className={`mt-2 inline-block px-3 py-1 rounded-full ${
+                  user?.subscriptionTier === 'el_dente' 
+                    ? 'bg-amber-50 border border-amber-200' 
+                    : 'bg-slate-50 border border-slate-200'
+                }`}>
+                  <span className={`text-sm font-medium ${
+                    user?.subscriptionTier === 'el_dente'
+                      ? 'text-amber-700'
+                      : 'text-slate-700'
+                  }`}>
+                    {user?.subscriptionTier === 'el_dente' ? 'El Dente' : 'Rare'}
+                  </span>
+                </div>
               </div>
             </div>
 
@@ -96,6 +116,21 @@ const Home: React.FC = () => {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Airtable Test Button */}
+        <div className="mb-8 flex items-center space-x-4">
+          <button 
+            onClick={checkAirtableConnection}
+            className="px-4 py-2 bg-porkchop text-white rounded hover:bg-porkchop/90"
+          >
+            Test Airtable Connection
+          </button>
+          {airtableStatus && (
+            <p className={`${airtableStatus.includes('Connected') ? 'text-green-600' : 'text-red-600'}`}>
+              {airtableStatus}
+            </p>
+          )}
         </div>
 
         {/* Navigation Cards */}

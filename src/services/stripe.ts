@@ -7,7 +7,7 @@ const stripePromise = loadStripe('YOUR_PUBLISHABLE_KEY');
 
 export interface SubscriptionTier {
   id: string;
-  name: 'Rare' | 'Al Dente';
+  name: 'Rare' | 'El Dente';
   price: number;
   features: string[];
   trialDays: number;
@@ -22,21 +22,26 @@ export const subscriptionTiers: SubscriptionTier[] = [
       'Basic recipe access',
       'Save favorite recipes',
       'Track cooking progress',
+      'Basic recipe creation',
+      'Access to community recipes',
+      'Standard support'
     ],
-    trialDays: 7,
+    trialDays: 0,
   },
   {
-    id: 'al-dente-tier',
-    name: 'Al Dente',
-    price: 9.99,
+    id: 'el-dente-tier',
+    name: 'El Dente',
+    price: 16.99,
     features: [
       'All Rare features',
       'Chef Freddie AI assistant',
-      'Advanced recipe filtering',
-      'Premium recipe collection',
+      'The Butcher Shop access',
+      'Chef\'s Corner access',
       'Priority support',
+      'Advanced recipe filtering',
+      'Premium recipe collection'
     ],
-    trialDays: 7,
+    trialDays: 0,
   },
 ];
 

@@ -1,4 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { usersTable, type User as AirtableUser } from '../services/airtable';
+import { FieldSet } from 'airtable';
 
 interface User {
   id: string;
@@ -49,15 +51,17 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
         const storedUser = localStorage.getItem('user');
         if (storedUser) {
           const parsedUser = JSON.parse(storedUser);
-          // Handle migration of existing users
-          if (parsedUser.name && !parsedUser.firstName) {
-            const names = parsedUser.name.split(' ');
-            parsedUser.firstName = names[0];
-            parsedUser.lastName = names.slice(1).join(' ') || '';
-            delete parsedUser.name;
-            localStorage.setItem('user', JSON.stringify(parsedUser));
+          // Verify user exists in Airtable
+          const records = await usersTable.select({
+            filterByFormula: `{Email} = '${parsedUser.email}'`
+          }).firstPage();
+          
+          if (records.length > 0) {
+            setUser(parsedUser);
+          } else {
+            // User not found in Airtable, clear local storage
+            localStorage.removeItem('user');
           }
-          setUser(parsedUser);
         }
       } catch (err) {
         console.error('Error checking auth:', err);
@@ -75,16 +79,26 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
       setIsLoading(true);
       setError(null);
       
-      // For development: accept any credentials
-      const names = email.split('@')[0].split('.');
-      const mockUser: User = {
-        id: 'user_1',
-        email: email,
-        firstName: names[0] || '',
-        lastName: names[1] || '',
-        avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(names.join(' '))}`,
-        recipesCreated: 0,
-        subscriptionTier: 'el_dente' as const,
+      // Find user in Airtable
+      const records = await usersTable.select({
+        filterByFormula: `{Email} = '${email}'`
+      }).firstPage();
+      
+      if (records.length === 0) {
+        throw new Error('User not found');
+      }
+
+      const airtableUser = records[0].fields as unknown as AirtableUser;
+      
+      // Convert Airtable user to our User type
+      const user: User = {
+        id: records[0].id, // Use the record ID from Airtable
+        email: airtableUser.Email,
+        firstName: airtableUser['First Name'],
+        lastName: airtableUser['Last Name'],
+        avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(`${airtableUser['First Name']} ${airtableUser['Last Name']}`)}`,
+        recipesCreated: 0, // We'll update this later
+        subscriptionTier: airtableUser['Subscription Tier'].toLowerCase() as 'rare' | 'el_dente',
         socialLinks: {
           instagram: '',
           facebook: '',
@@ -93,8 +107,9 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
           youtube: ''
         }
       };
-      setUser(mockUser);
-      localStorage.setItem('user', JSON.stringify(mockUser));
+
+      setUser(user);
+      localStorage.setItem('user', JSON.stringify(user));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
       throw err;
@@ -108,15 +123,51 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
       setIsLoading(true);
       setError(null);
       
-      // For development: create a mock user
-      const mockUser: User = {
-        id: 'user_1',
-        email: email,
-        firstName: firstName,
-        lastName: lastName,
-        avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(`${firstName} ${lastName}`)}`,
+      // Check if user already exists
+      const existingRecords = await usersTable.select({
+        filterByFormula: `{Email} = '${email}'`
+      }).firstPage();
+      
+      if (existingRecords.length > 0) {
+        throw new Error('User already exists');
+      }
+
+      const now = new Date().toISOString().split('T')[0]; // Format: YYYY-MM-DD
+
+      console.log('Creating user with data:', {
+        Email: email,
+        'First Name': firstName,
+        'Last Name': lastName,
+        'Subscription Tier': 'Rare',
+        'Subscription Status': 'Active',
+        'Created At': now,
+        'Last Updated': now
+      });
+
+      // Create new user in Airtable
+      const record = await usersTable.create({
+        Email: email,
+        'First Name': firstName,
+        'Last Name': lastName,
+        'Subscription Tier': 'Rare',
+        'Subscription Status': 'Active',
+        'Created At': now,
+        'Last Updated': now
+      });
+
+      console.log('Created record:', record);
+
+      const airtableUser = record.fields as unknown as AirtableUser;
+      
+      // Convert Airtable user to our User type
+      const user: User = {
+        id: record.id, // Use the record ID from Airtable
+        email: airtableUser.Email,
+        firstName: airtableUser['First Name'],
+        lastName: airtableUser['Last Name'],
+        avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(`${airtableUser['First Name']} ${airtableUser['Last Name']}`)}`,
         recipesCreated: 0,
-        subscriptionTier: 'el_dente' as const,
+        subscriptionTier: airtableUser['Subscription Tier'].toLowerCase() as 'rare' | 'el_dente',
         socialLinks: {
           instagram: '',
           facebook: '',
@@ -125,9 +176,11 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
           youtube: ''
         }
       };
-      setUser(mockUser);
-      localStorage.setItem('user', JSON.stringify(mockUser));
+
+      setUser(user);
+      localStorage.setItem('user', JSON.stringify(user));
     } catch (err) {
+      console.error('Signup error:', err);
       setError(err instanceof Error ? err.message : 'An error occurred');
       throw err;
     } finally {
@@ -154,12 +207,35 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
       setIsLoading(true);
       setError(null);
       
-      if (!user) throw new Error('No user logged in');
+      if (!user?.id) {
+        console.error('Current user:', user);
+        throw new Error('No user logged in or invalid user ID');
+      }
+      
+      console.log('Current user data:', user);
+      console.log('Updating profile for user:', user.id);
+      
+      // Update user in Airtable
+      const updateFields: Record<string, any> = {
+        'Last Updated': new Date().toISOString().split('T')[0]
+      };
+
+      if (updates.firstName) updateFields['First Name'] = updates.firstName;
+      if (updates.lastName) updateFields['Last Name'] = updates.lastName;
+
+      console.log('Updating fields:', updateFields);
+      
+      try {
+        await usersTable.update(user.id, updateFields);
+        console.log('Successfully updated user in Airtable');
+      } catch (updateError) {
+        console.error('Airtable update error:', updateError);
+        throw updateError;
+      }
       
       const updatedUser = {
         ...user,
         ...updates,
-        // Update avatar if name is being changed
         avatar: (updates.firstName || updates.lastName)
           ? `https://ui-avatars.com/api/?name=${encodeURIComponent(`${updates.firstName || user.firstName} ${updates.lastName || user.lastName}`)}`
           : user.avatar
@@ -168,6 +244,7 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
       setUser(updatedUser);
       localStorage.setItem('user', JSON.stringify(updatedUser));
     } catch (err) {
+      console.error('Profile update error:', err);
       setError(err instanceof Error ? err.message : 'An error occurred');
       throw err;
     } finally {

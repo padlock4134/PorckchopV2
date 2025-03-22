@@ -23,8 +23,7 @@ const Signup: React.FC = () => {
     try {
       setError('');
       setLoading(true);
-      const fullName = `${firstName} ${lastName}`.trim();
-      await signup(email, password, fullName);
+      await signup(email, password, firstName, lastName);
       navigate('/');
     } catch (err) {
       setError('Failed to create an account. Please try again.');

@@ -21,7 +21,7 @@ const CARD_ELEMENT_OPTIONS = {
   },
 };
 
-const CheckoutForm = ({ selectedTier }: { selectedTier: SubscriptionTier | null }) => {
+const CheckoutForm = ({ selectedTier, onSuccess }: { selectedTier: SubscriptionTier | null, onSuccess: () => void }) => {
   const stripe = useStripe();
   const elements = useElements();
   const [error, setError] = useState<string | null>(null);
@@ -68,8 +68,7 @@ const CheckoutForm = ({ selectedTier }: { selectedTier: SubscriptionTier | null 
         }),
       });
 
-      // TODO: Handle successful subscription
-      window.location.href = '/dashboard';
+      onSuccess();
     } catch (err) {
       setError('Failed to process subscription');
     } finally {
@@ -94,7 +93,7 @@ const CheckoutForm = ({ selectedTier }: { selectedTier: SubscriptionTier | null 
             : 'bg-blue-600 hover:bg-blue-700'
         }`}
       >
-        {processing ? 'Processing...' : `Start ${selectedTier?.trialDays}-Day Free Trial`}
+        {processing ? 'Processing...' : `Start ${selectedTier?.name} Plan`}
       </button>
     </form>
   );
@@ -102,6 +101,16 @@ const CheckoutForm = ({ selectedTier }: { selectedTier: SubscriptionTier | null 
 
 const PricingPage: React.FC = () => {
   const [selectedTier, setSelectedTier] = useState<SubscriptionTier | null>(null);
+  const [showPaymentForm, setShowPaymentForm] = useState(false);
+
+  const handleTierSelect = (tier: SubscriptionTier) => {
+    setSelectedTier(tier);
+    setShowPaymentForm(true);
+  };
+
+  const handleSuccess = () => {
+    window.location.href = '/dashboard';
+  };
 
   return (
     <div className="min-h-screen bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
@@ -111,7 +120,7 @@ const PricingPage: React.FC = () => {
             Choose Your Cooking Adventure
           </h2>
           <p className="mt-4 text-xl text-gray-600">
-            Start with a free trial and cook like a pro
+            Select the perfect plan for your culinary journey
           </p>
         </div>
 
@@ -131,9 +140,6 @@ const PricingPage: React.FC = () => {
                 </h3>
                 <p className="mt-4 text-gray-500">
                   {tier.price === 0 ? 'Free' : `$${tier.price}/month`}
-                </p>
-                <p className="mt-2 text-sm text-blue-500">
-                  {tier.trialDays} days free trial
                 </p>
                 <ul className="mt-6 space-y-4">
                   {tier.features.map((feature, index) => (
@@ -156,7 +162,7 @@ const PricingPage: React.FC = () => {
                   ))}
                 </ul>
                 <button
-                  onClick={() => setSelectedTier(tier)}
+                  onClick={() => handleTierSelect(tier)}
                   className={`mt-8 w-full py-3 px-4 rounded-md text-white font-medium ${
                     selectedTier?.id === tier.id
                       ? 'bg-blue-600'
@@ -172,10 +178,10 @@ const PricingPage: React.FC = () => {
           ))}
         </div>
 
-        {selectedTier && (
+        {showPaymentForm && selectedTier && (
           <div className="mt-12 max-w-lg mx-auto">
             <Elements stripe={stripePromise}>
-              <CheckoutForm selectedTier={selectedTier} />
+              <CheckoutForm selectedTier={selectedTier} onSuccess={handleSuccess} />
             </Elements>
           </div>
         )}
