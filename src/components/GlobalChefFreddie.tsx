@@ -13,7 +13,15 @@ import {
   getFlavorPairings,
   getBestCookingMethod,
   getSeasonalPairings,
-  flavorCombinations
+  flavorCombinations,
+  findTutorialsByCategory,
+  findTutorialsByDifficulty,
+  findChallengesByDifficulty,
+  findAchievementsByCategory,
+  findCommunityFeature,
+  chefCornerChallenges,
+  chefCornerAchievements,
+  communityFeatures
 } from '../utils/chefKnowledge';
 import ChefFreddieLogo from './ChefFreddieLogo';
 
@@ -217,6 +225,185 @@ const GlobalChefFreddie: React.FC = () => {
       const { type, keywords, intent } = analyzeUserQuery(text);
       const routeContext = getRouteContext();
       const lowerText = text.toLowerCase();
+
+      // Handle Chef's Corner specific queries
+      if (currentRoute === '/chefs-corner') {
+        // Check for challenge queries
+        if (lowerText.includes('challenge') || lowerText.includes('challenges')) {
+          const difficultyLevels = ['beginner', 'intermediate', 'advanced'];
+          const difficultyMatch = difficultyLevels.find(level => 
+            lowerText.includes(level)
+          );
+
+          if (difficultyMatch) {
+            const challenges = findChallengesByDifficulty(difficultyMatch as Challenge['difficulty']);
+            return {
+              text: `Here are our ${difficultyMatch} challenges:`,
+              type: 'help',
+              suggestedQuestions: [
+                'What are the rewards?',
+                'How do I participate?',
+                'Show me other difficulty levels'
+              ],
+              additionalInfo: {
+                tips: challenges.map(c => 
+                  `${c.title}: ${c.description} (${c.duration})`
+                )
+              }
+            };
+          }
+
+          return {
+            text: 'Here are our current challenges:',
+            type: 'help',
+            suggestedQuestions: [
+              'Show me beginner challenges',
+              'What are the rewards?',
+              'How do I participate?'
+            ],
+            additionalInfo: {
+              tips: chefCornerChallenges.map(c => 
+                `${c.title}: ${c.description} (${c.difficulty}, ${c.duration})`
+              )
+            }
+          };
+        }
+
+        // Check for achievement queries
+        if (lowerText.includes('achievement') || lowerText.includes('achievements') || lowerText.includes('badge')) {
+          const categories = ['cooking', 'social', 'learning', 'special'];
+          const categoryMatch = categories.find(category => 
+            lowerText.includes(category)
+          );
+
+          if (categoryMatch) {
+            const achievements = findAchievementsByCategory(categoryMatch as Achievement['category']);
+            return {
+              text: `Here are our ${categoryMatch} achievements:`,
+              type: 'help',
+              suggestedQuestions: [
+                'What are the requirements?',
+                'How many points do I get?',
+                'Show me other categories'
+              ],
+              additionalInfo: {
+                tips: achievements.map(a => 
+                  `${a.title}: ${a.description} (${a.points} points)`
+                )
+              }
+            };
+          }
+
+          return {
+            text: 'Here are our available achievements:',
+            type: 'help',
+            suggestedQuestions: [
+              'Show me cooking achievements',
+              'What are the requirements?',
+              'How do I earn badges?'
+            ],
+            additionalInfo: {
+              tips: chefCornerAchievements.map(a => 
+                `${a.title}: ${a.description} (${a.category}, ${a.points} points)`
+              )
+            }
+          };
+        }
+
+        // Check for community feature queries
+        if (lowerText.includes('community') || lowerText.includes('group') || lowerText.includes('profile')) {
+          const featureMatch = communityFeatures.find(feature => 
+            lowerText.includes(feature.name.toLowerCase())
+          );
+
+          if (featureMatch) {
+            return {
+              text: `Let me tell you about ${featureMatch.name}:`,
+              type: 'help',
+              suggestedQuestions: [
+                'What are the benefits?',
+                'How do I get started?',
+                'Show me other features'
+              ],
+              additionalInfo: {
+                tips: [
+                  `Description: ${featureMatch.description}`,
+                  'Benefits:',
+                  ...featureMatch.benefits.map(b => `- ${b}`),
+                  'How to get started:',
+                  ...featureMatch.howTo.map(h => `- ${h}`)
+                ]
+              }
+            };
+          }
+
+          return {
+            text: 'Here are our community features:',
+            type: 'help',
+            suggestedQuestions: [
+              'Tell me about Chef Profiles',
+              'What are Cooking Groups?',
+              'How do I share photos?'
+            ],
+            additionalInfo: {
+              tips: communityFeatures.map(f => 
+                `${f.name}: ${f.description}`
+              )
+            }
+          };
+        }
+
+        // Check for tutorial category queries
+        const tutorialCategories = ['cooking methods', 'food safety', 'knife skills', 'prep & storage', 'seasoning & rubs'];
+        const categoryMatch = tutorialCategories.find(category => 
+          lowerText.includes(category)
+        );
+
+        if (categoryMatch) {
+          const category = findTutorialsByCategory(categoryMatch);
+          if (category) {
+            return {
+              text: `Let me show you the ${category.name} tutorials:`,
+              type: 'help',
+              suggestedQuestions: [
+                'Show me the basic tutorials',
+                'What are the intermediate tutorials?',
+                'Tell me about the advanced tutorials'
+              ],
+              additionalInfo: {
+                tips: [
+                  `Basic Series: ${category.series.basic.map(t => t.title).join(', ')}`,
+                  `Intermediate Series: ${category.series.intermediate.map(t => t.title).join(', ')}`,
+                  `Advanced Series: ${category.series.advanced.map(t => t.title).join(', ')}`
+                ]
+              }
+            };
+          }
+        }
+
+        // Check for difficulty level queries
+        const difficultyLevels = ['basic', 'beginner', 'intermediate', 'advanced'];
+        const difficultyMatch = difficultyLevels.find(level => 
+          lowerText.includes(level)
+        );
+
+        if (difficultyMatch) {
+          const difficulty = difficultyMatch === 'beginner' ? 'basic' : difficultyMatch;
+          const tutorials = findTutorialsByDifficulty(difficulty as 'basic' | 'intermediate' | 'advanced');
+          return {
+            text: `Here are our ${difficulty} tutorials:`,
+            type: 'help',
+            suggestedQuestions: [
+              'Show me tutorials from a specific category',
+              'What should I learn next?',
+              'How do I progress to the next level?'
+            ],
+            additionalInfo: {
+              tips: tutorials.map(t => `${t.title}: ${t.description}`)
+            }
+          };
+        }
+      }
 
       // Route-specific responses
       if (currentRoute === '/create-recipe') {

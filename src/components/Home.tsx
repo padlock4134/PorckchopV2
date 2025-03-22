@@ -38,12 +38,22 @@ const Home: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Welcome Card */}
         <div className="bg-white rounded-lg shadow-sm mb-12 p-8">
-          <h1 className="text-4xl font-serif font-bold text-gray-900 mb-4">
-            Welcome back, {user?.name || 'there'}!
-          </h1>
-          <p className="text-xl text-gray-600">
-            Ready to create something delicious today?
-          </p>
+          <div className="flex items-center">
+            <div className="flex-shrink-0 mr-6">
+              <div className="w-16 h-16 rounded-full bg-porkchop-100 flex items-center justify-center">
+                <span className="text-2xl">🥉</span>
+              </div>
+              <div className="text-sm text-gray-600 text-center mt-1">Line Cook</div>
+            </div>
+            <div>
+              <h1 className="text-4xl font-serif font-bold text-gray-900 mb-4">
+                Welcome back, {user?.name || 'there'}!
+              </h1>
+              <p className="text-xl text-gray-600">
+                Ready to create something delicious today?
+              </p>
+            </div>
+          </div>
         </div>
 
         {/* Navigation Cards */}

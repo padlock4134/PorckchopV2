@@ -7,6 +7,13 @@ interface User {
   avatar: string;
   recipesCreated: number;
   subscriptionTier: 'rare' | 'el_dente';
+  socialLinks?: {
+    instagram?: string;
+    facebook?: string;
+    twitter?: string;
+    website?: string;
+    youtube?: string;
+  };
 }
 
 interface AuthContextType {
@@ -64,7 +71,14 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
         name: email.split('@')[0],
         avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(email.split('@')[0])}`,
         recipesCreated: 0,
-        subscriptionTier: 'el_dente' as const // For development: default to el_dente tier
+        subscriptionTier: 'el_dente' as const,
+        socialLinks: {
+          instagram: '',
+          facebook: '',
+          twitter: '',
+          website: '',
+          youtube: ''
+        }
       };
       setUser(mockUser);
       localStorage.setItem('user', JSON.stringify(mockUser));
@@ -88,7 +102,14 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
         name: name,
         avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}`,
         recipesCreated: 0,
-        subscriptionTier: 'el_dente' as const // For development: default to el_dente tier
+        subscriptionTier: 'el_dente' as const,
+        socialLinks: {
+          instagram: '',
+          facebook: '',
+          twitter: '',
+          website: '',
+          youtube: ''
+        }
       };
       setUser(mockUser);
       localStorage.setItem('user', JSON.stringify(mockUser));

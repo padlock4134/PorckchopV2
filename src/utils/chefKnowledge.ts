@@ -389,4 +389,486 @@ export function getRecipeGuidelines(aspect: string): RecipeGuideline | undefined
   return recipeGuidelines.find(
     g => g.aspect.toLowerCase() === aspect.toLowerCase()
   );
+}
+
+interface TutorialCategory {
+  name: string;
+  color: string;
+  series: {
+    basic: Tutorial[];
+    intermediate: Tutorial[];
+    advanced: Tutorial[];
+  };
+}
+
+interface Tutorial {
+  title: string;
+  description: string;
+  emoji: string;
+  color: string;
+}
+
+export const tutorialCategories: TutorialCategory[] = [
+  {
+    name: 'Cooking Methods',
+    color: 'orange',
+    series: {
+      basic: [
+        {
+          title: 'Pan Frying & Sautéing',
+          description: 'Master the fundamentals of pan cooking techniques.',
+          emoji: '🍳',
+          color: 'orange'
+        },
+        {
+          title: 'Boiling & Simmering',
+          description: 'Learn proper water-based cooking methods.',
+          emoji: '🥘',
+          color: 'orange'
+        }
+      ],
+      intermediate: [
+        {
+          title: 'Braising & Stewing',
+          description: 'Perfect slow-cooking methods for tender results.',
+          emoji: '🍖',
+          color: 'orange'
+        },
+        {
+          title: 'Roasting & Baking',
+          description: 'Master dry heat cooking techniques.',
+          emoji: '🔥',
+          color: 'orange'
+        }
+      ],
+      advanced: [
+        {
+          title: 'Sous Vide Cooking',
+          description: 'Learn precision temperature cooking.',
+          emoji: '🌡️',
+          color: 'orange'
+        },
+        {
+          title: 'Smoking & Grilling',
+          description: 'Master outdoor and smoke cooking techniques.',
+          emoji: '🌫️',
+          color: 'orange'
+        }
+      ]
+    }
+  },
+  {
+    name: 'Food Safety',
+    color: 'blue',
+    series: {
+      basic: [
+        {
+          title: 'Temperature Control: The Danger Zone',
+          description: 'Understanding safe temperature ranges and proper thermometer usage.',
+          emoji: '🌡️',
+          color: 'blue'
+        },
+        {
+          title: 'Cross-Contamination Prevention',
+          description: 'Learn how to prevent foodborne illness through proper handling.',
+          emoji: '⚠️',
+          color: 'blue'
+        }
+      ],
+      intermediate: [
+        {
+          title: 'Proper Hand Washing & Sanitization',
+          description: 'Master the WHO hand washing technique and kitchen sanitization.',
+          emoji: '🧼',
+          color: 'blue'
+        },
+        {
+          title: 'Ingredient Storage & Shelf Life',
+          description: 'Learn proper storage techniques for different types of ingredients.',
+          emoji: '📦',
+          color: 'blue'
+        }
+      ],
+      advanced: [
+        {
+          title: 'Allergen Management',
+          description: 'Prevent cross-contact and handle food allergies safely.',
+          emoji: '⚠️',
+          color: 'blue'
+        },
+        {
+          title: 'Emergency Response',
+          description: 'Learn first aid basics and kitchen emergency procedures.',
+          emoji: '🚨',
+          color: 'blue'
+        }
+      ]
+    }
+  },
+  {
+    name: 'Knife Skills',
+    color: 'porkchop',
+    series: {
+      basic: [
+        {
+          title: 'How to Hold a Knife Like a Pro',
+          description: 'Master the fundamental grip techniques used by professional chefs.',
+          emoji: '🔪',
+          color: 'porkchop'
+        },
+        {
+          title: 'Basic Cuts: Dice, Slice, Chop',
+          description: 'Learn the essential cutting techniques every home chef needs.',
+          emoji: '✂️',
+          color: 'porkchop'
+        }
+      ],
+      intermediate: [
+        {
+          title: 'Julienne & Batonnet: Perfect Matchsticks',
+          description: 'Create uniform matchstick cuts for stir-fries and salads.',
+          emoji: '🥕',
+          color: 'porkchop'
+        },
+        {
+          title: 'Chiffonade: Beautiful Herbs & Greens',
+          description: 'Master the art of cutting herbs and leafy greens into ribbons.',
+          emoji: '🌿',
+          color: 'porkchop'
+        }
+      ],
+      advanced: [
+        {
+          title: 'Tourné: The Art of the Turned Cut',
+          description: 'Learn the classic French technique for cutting vegetables into football shapes.',
+          emoji: '🥔',
+          color: 'porkchop'
+        },
+        {
+          title: 'Speed Slicing: Professional Efficiency',
+          description: 'Increase your cutting speed while maintaining precision and safety.',
+          emoji: '⚡',
+          color: 'porkchop'
+        }
+      ]
+    }
+  },
+  {
+    name: 'Prep & Storage',
+    color: 'green',
+    series: {
+      basic: [
+        {
+          title: 'Proper Produce Washing',
+          description: 'Learn the correct way to wash and prepare different types of produce.',
+          emoji: '🥬',
+          color: 'green'
+        },
+        {
+          title: 'Freezing Techniques',
+          description: 'Master the art of freezing ingredients while maintaining quality.',
+          emoji: '🧊',
+          color: 'green'
+        }
+      ],
+      intermediate: [
+        {
+          title: 'Meat Preparation & Storage',
+          description: 'Proper techniques for handling and storing different cuts of meat.',
+          emoji: '🥩',
+          color: 'green'
+        },
+        {
+          title: 'Wine & Ingredient Pairing',
+          description: 'Learn how to pair ingredients with wines for optimal flavor.',
+          emoji: '🍷',
+          color: 'green'
+        }
+      ],
+      advanced: [
+        {
+          title: 'Dry Aging & Curing',
+          description: 'Advanced techniques for aging and curing meats at home.',
+          emoji: '🍖',
+          color: 'green'
+        },
+        {
+          title: 'Herb & Spice Preservation',
+          description: 'Methods for preserving and storing fresh herbs and spices.',
+          emoji: '🌿',
+          color: 'green'
+        }
+      ]
+    }
+  },
+  {
+    name: 'Seasoning & Rubs',
+    color: 'purple',
+    series: {
+      basic: [
+        {
+          title: 'Salt & Pepper Fundamentals',
+          description: 'Master the art of basic seasoning with salt and pepper.',
+          emoji: '🧂',
+          color: 'purple'
+        },
+        {
+          title: 'Herb & Spice Basics',
+          description: 'Learn to use common herbs and spices effectively.',
+          emoji: '🌶️',
+          color: 'purple'
+        }
+      ],
+      intermediate: [
+        {
+          title: 'Meat Rubs & Marinades',
+          description: 'Create flavorful rubs and marinades for different cuts of meat.',
+          emoji: '🥩',
+          color: 'purple'
+        },
+        {
+          title: 'Herb Blends & Mixes',
+          description: 'Learn to create custom herb blends for different cuisines.',
+          emoji: '🌿',
+          color: 'purple'
+        }
+      ],
+      advanced: [
+        {
+          title: 'Complex Spice Blends',
+          description: 'Create sophisticated spice blends from around the world.',
+          emoji: '🔥',
+          color: 'purple'
+        },
+        {
+          title: 'Advanced Seasoning Techniques',
+          description: 'Master advanced seasoning methods for professional results.',
+          emoji: '⚡',
+          color: 'purple'
+        }
+      ]
+    }
+  }
+];
+
+// Helper function to find tutorials by category
+export function findTutorialsByCategory(categoryName: string): TutorialCategory | undefined {
+  return tutorialCategories.find(
+    category => category.name.toLowerCase() === categoryName.toLowerCase()
+  );
+}
+
+// Helper function to find tutorials by difficulty level
+export function findTutorialsByDifficulty(difficulty: 'basic' | 'intermediate' | 'advanced'): Tutorial[] {
+  return tutorialCategories.flatMap(category => category.series[difficulty]);
+}
+
+interface Challenge {
+  id: string;
+  title: string;
+  description: string;
+  difficulty: 'beginner' | 'intermediate' | 'advanced';
+  duration: string;
+  rewards: {
+    points: number;
+    badges?: string[];
+  };
+  requirements: string[];
+  tips: string[];
+  emoji: string;
+  color: string;
+}
+
+interface Achievement {
+  id: string;
+  title: string;
+  description: string;
+  category: 'cooking' | 'social' | 'learning' | 'special';
+  points: number;
+  requirements: string[];
+  badge: {
+    name: string;
+    emoji: string;
+    color: string;
+  };
+}
+
+interface CommunityFeature {
+  name: string;
+  description: string;
+  benefits: string[];
+  howTo: string[];
+  emoji: string;
+  color: string;
+}
+
+export const chefCornerChallenges: Challenge[] = [
+  {
+    id: 'weekly-knife-skills',
+    title: 'Weekly Knife Skills Challenge',
+    description: 'Master a new knife technique each week and share your progress.',
+    difficulty: 'intermediate',
+    duration: '7 days',
+    rewards: {
+      points: 500,
+      badges: ['Knife Master']
+    },
+    requirements: [
+      'Complete the assigned knife technique tutorial',
+      'Share a photo of your practice results',
+      'Get feedback from other chefs'
+    ],
+    tips: [
+      'Practice daily for best results',
+      'Record your progress with photos',
+      'Ask for tips from experienced chefs'
+    ],
+    emoji: '🔪',
+    color: 'porkchop'
+  },
+  {
+    id: 'safety-first',
+    title: 'Food Safety Certification',
+    description: 'Complete all food safety tutorials and pass the certification quiz.',
+    difficulty: 'beginner',
+    duration: '14 days',
+    rewards: {
+      points: 1000,
+      badges: ['Safety Expert']
+    },
+    requirements: [
+      'Complete all food safety tutorials',
+      'Pass the certification quiz with 90% or higher',
+      'Share your certification badge'
+    ],
+    tips: [
+      'Take notes during tutorials',
+      'Practice safety techniques in your kitchen',
+      'Review before the quiz'
+    ],
+    emoji: '⚠️',
+    color: 'blue'
+  }
+];
+
+export const chefCornerAchievements: Achievement[] = [
+  {
+    id: 'tutorial-master',
+    title: 'Tutorial Master',
+    description: 'Complete all tutorials in a category',
+    category: 'learning',
+    points: 2000,
+    requirements: [
+      'Complete all basic tutorials',
+      'Complete all intermediate tutorials',
+      'Complete all advanced tutorials'
+    ],
+    badge: {
+      name: 'Tutorial Master',
+      emoji: '🎓',
+      color: 'purple'
+    }
+  },
+  {
+    id: 'community-helper',
+    title: 'Community Helper',
+    description: 'Help other chefs by providing constructive feedback',
+    category: 'social',
+    points: 1000,
+    requirements: [
+      'Provide feedback on 10 tutorial submissions',
+      'Get positive ratings from other chefs',
+      'Share helpful tips in the community'
+    ],
+    badge: {
+      name: 'Community Helper',
+      emoji: '🤝',
+      color: 'green'
+    }
+  },
+  {
+    id: 'challenge-champion',
+    title: 'Challenge Champion',
+    description: 'Win three consecutive weekly challenges',
+    category: 'cooking',
+    points: 3000,
+    requirements: [
+      'Win three challenges in a row',
+      'Share your winning submissions',
+      'Help others with their submissions'
+    ],
+    badge: {
+      name: 'Challenge Champion',
+      emoji: '🏆',
+      color: 'gold'
+    }
+  }
+];
+
+export const communityFeatures: CommunityFeature[] = [
+  {
+    name: 'Chef Profiles',
+    description: 'Create and customize your chef profile to showcase your skills and achievements.',
+    benefits: [
+      'Display your cooking journey',
+      'Share your favorite recipes',
+      'Connect with other chefs'
+    ],
+    howTo: [
+      'Complete your profile information',
+      'Add your cooking photos',
+      'Share your achievements'
+    ],
+    emoji: '👨‍🍳',
+    color: 'porkchop'
+  },
+  {
+    name: 'Cooking Groups',
+    description: 'Join or create cooking groups based on interests, cuisines, or skill levels.',
+    benefits: [
+      'Learn from like-minded chefs',
+      'Share experiences and tips',
+      'Organize cooking events'
+    ],
+    howTo: [
+      'Browse existing groups',
+      'Create your own group',
+      'Invite other chefs to join'
+    ],
+    emoji: '👥',
+    color: 'blue'
+  },
+  {
+    name: 'Photo Sharing',
+    description: 'Share your cooking journey with photos of your dishes and techniques.',
+    benefits: [
+      'Get feedback from other chefs',
+      'Document your progress',
+      'Inspire others'
+    ],
+    howTo: [
+      'Upload high-quality photos',
+      'Add descriptions and tips',
+      'Engage with other posts'
+    ],
+    emoji: '📸',
+    color: 'green'
+  }
+];
+
+// Helper function to find challenges by difficulty
+export function findChallengesByDifficulty(difficulty: Challenge['difficulty']): Challenge[] {
+  return chefCornerChallenges.filter(challenge => challenge.difficulty === difficulty);
+}
+
+// Helper function to find achievements by category
+export function findAchievementsByCategory(category: Achievement['category']): Achievement[] {
+  return chefCornerAchievements.filter(achievement => achievement.category === category);
+}
+
+// Helper function to find community features by name
+export function findCommunityFeature(name: string): CommunityFeature | undefined {
+  return communityFeatures.find(feature => 
+    feature.name.toLowerCase() === name.toLowerCase()
+  );
 } 

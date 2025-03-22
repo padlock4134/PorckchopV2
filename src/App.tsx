@@ -13,6 +13,7 @@ import Login from './components/Login';
 import Signup from './components/Signup';
 import PrivateRoute from './components/PrivateRoute.tsx';
 import GlobalChefFreddie from './components/GlobalChefFreddie';
+import ChefsCorner from './components/ChefsCorner';
 
 const App: React.FC = () => {
   return (
@@ -55,6 +56,14 @@ const App: React.FC = () => {
                   element={
                     <PrivateRoute>
                       <ProfilePage />
+                    </PrivateRoute>
+                  }
+                />
+                <Route
+                  path="/chefs-corner"
+                  element={
+                    <PrivateRoute>
+                      <ChefsCorner />
                     </PrivateRoute>
                   }
                 />

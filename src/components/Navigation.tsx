@@ -44,13 +44,9 @@ const Navigation: React.FC = () => {
           </div>
 
           <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2">
-              <span className={`text-xs px-2 py-0.5 rounded-full ${levelColor}`}>
-                Lvl {chefLevel.level}
-              </span>
-              <span className="text-xs text-gray-500">
-                {chefLevel.title}
-              </span>
+            {/* Tip of the Day */}
+            <div className="mr-4">
+              <TipOfTheDay />
             </div>
             <div className="relative">
               <button
@@ -75,9 +71,10 @@ const Navigation: React.FC = () => {
                   </div>
                 )}
               </button>
+              
               {isUserMenuOpen && (
                 <div
-                  className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 focus:outline-none"
+                  className="absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 focus:outline-none"
                   role="menu"
                   aria-orientation="vertical"
                   aria-labelledby="user-menu-button"
@@ -104,11 +101,6 @@ const Navigation: React.FC = () => {
                   </button>
                 </div>
               )}
-            </div>
-
-            {/* Tip of the Day */}
-            <div className="ml-4">
-              <TipOfTheDay />
             </div>
           </div>
         </div>

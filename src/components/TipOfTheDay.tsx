@@ -6,17 +6,45 @@ const TipOfTheDay: React.FC = () => {
   const [currentTip, setCurrentTip] = useState(cookingTips[0]);
 
   useEffect(() => {
-    // Change tip every 24 hours
     const getRandomTip = () => {
       const randomIndex = Math.floor(Math.random() * cookingTips.length);
-      setCurrentTip(cookingTips[randomIndex]);
+      return cookingTips[randomIndex];
     };
 
-    // Set initial tip
-    getRandomTip();
+    const checkAndUpdateTip = () => {
+      const now = new Date();
+      const lastTipDate = localStorage.getItem('lastTipDate');
+      const lastTipIndex = localStorage.getItem('lastTipIndex');
 
-    // Change tip every 24 hours
-    const interval = setInterval(getRandomTip, 24 * 60 * 60 * 1000);
+      // If no last tip date or it's a different day, update the tip
+      if (!lastTipDate || new Date(lastTipDate).getDate() !== now.getDate()) {
+        const newTip = getRandomTip();
+        const newTipIndex = cookingTips.findIndex(tip => tip === newTip);
+        
+        // Store the new tip date and index
+        localStorage.setItem('lastTipDate', now.toISOString());
+        localStorage.setItem('lastTipIndex', newTipIndex.toString());
+        
+        setCurrentTip(newTip);
+      } else if (lastTipIndex) {
+        // If it's the same day, use the stored tip
+        setCurrentTip(cookingTips[parseInt(lastTipIndex)]);
+      }
+    };
+
+    // Check and update tip on component mount
+    checkAndUpdateTip();
+
+    // Set up interval to check for midnight
+    const checkForMidnight = () => {
+      const now = new Date();
+      if (now.getHours() === 0 && now.getMinutes() === 0) {
+        checkAndUpdateTip();
+      }
+    };
+
+    // Check every minute for midnight
+    const interval = setInterval(checkForMidnight, 60 * 1000);
 
     return () => clearInterval(interval);
   }, []);

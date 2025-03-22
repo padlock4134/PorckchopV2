@@ -30,7 +30,7 @@ const routeContextMap: Record<string, RouteContext> = {
   '/': {
     route: '/',
     title: 'Home',
-    description: 'Welcome to PorkChop! How can I help you today?',
+    description: 'Welcome to PorkChop! I can help you discover new recipes and learn cooking techniques.',
     suggestedQuestions: [
       'What can I cook today?',
       'Show me popular recipes',
@@ -40,27 +40,19 @@ const routeContextMap: Record<string, RouteContext> = {
     ],
     features: [
       {
-        name: 'Recipe discovery',
+        name: 'Recipe Discovery',
         suggestedQuestions: [
-          'What are the most popular recipes?',
-          'Show me quick dinner ideas',
-          'What can I cook with chicken?'
+          'What recipes do you recommend?',
+          'How do I find recipes by ingredient?',
+          'What\'s trending today?'
         ]
       },
       {
-        name: 'Recipe Management',
+        name: 'Cooking Tips',
         suggestedQuestions: [
-          'How do I save recipes to my cookbook?',
-          'Where are my archived recipes?',
-          'How do I organize my recipes?'
-        ]
-      },
-      {
-        name: 'Quick start cooking',
-        suggestedQuestions: [
-          'Help me start cooking',
-          'What are some easy recipes?',
-          'Show me 30-minute meals'
+          'What are some basic cooking tips?',
+          'How do I improve my knife skills?',
+          'What\'s the best way to season food?'
         ]
       }
     ]
@@ -300,6 +292,44 @@ const routeContextMap: Record<string, RouteContext> = {
           'What temperature should I cook different cuts to?',
           'How do I tenderize tough cuts?',
           'What are the best cooking methods for each cut?'
+        ]
+      }
+    ]
+  },
+  '/chefs-corner': {
+    route: '/chefs-corner',
+    title: 'Chef\'s Corner',
+    description: 'Welcome to the Chef\'s Corner! Here you can access our comprehensive tutorial library, join cooking challenges, and connect with other chefs.',
+    suggestedQuestions: [
+      'What tutorials do you recommend for beginners?',
+      'Show me the knife skills tutorials',
+      'Where can I learn about food safety?',
+      'How do I participate in cooking challenges?',
+      'How do I connect with other chefs?'
+    ],
+    features: [
+      {
+        name: 'Tutorial Library',
+        suggestedQuestions: [
+          'What tutorials do you recommend for beginners?',
+          'Show me the knife skills tutorials',
+          'Where can I learn about food safety?'
+        ]
+      },
+      {
+        name: 'Cooking Challenges',
+        suggestedQuestions: [
+          'What\'s the current challenge?',
+          'How do I participate in challenges?',
+          'What are the rewards?'
+        ]
+      },
+      {
+        name: 'Community',
+        suggestedQuestions: [
+          'How do I connect with other chefs?',
+          'Can I share my cooking photos?',
+          'How do I follow other chefs?'
         ]
       }
     ]
